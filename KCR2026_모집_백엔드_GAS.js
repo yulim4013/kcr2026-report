@@ -72,6 +72,8 @@ function saveApplication_(data) {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS])
       .setBackground("#185FA5").setFontColor("#FFFFFF").setFontWeight("bold");
     sheet.setFrozenRows(1);
+    // 상태 열에 드롭다운 설정 (V열 = 22번째 열)
+    setupStatusDropdown(sheet);
   }
 
   const row = [
@@ -106,6 +108,25 @@ function saveApplication_(data) {
   sheet.autoResizeColumns(1, HEADERS.length);
 }
 
+// ── 상태 열 드롭다운 설정 ─────────────────────────────────────
+// 시트 생성 시 자동 호출됨. 기존 시트에 적용하려면 수동으로 실행하세요.
+function setupStatusDropdown(sheet) {
+  if (!sheet) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  }
+  if (!sheet) return;
+
+  const statusCol = HEADERS.indexOf("상태") + 1;
+  const rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(["접수완료", "서류검토중", "승인", "거절"], true)
+    .setAllowInvalid(false)
+    .build();
+
+  // 2행부터 1000행까지 드롭다운 적용
+  sheet.getRange(2, statusCol, 999, 1).setDataValidation(rule);
+  Logger.log("상태 드롭다운 설정 완료");
+}
+
 // ── 이메일 중복 체크 ──────────────────────────────────────────
 function checkDuplicate_(email) {
   if (!email) return false;
@@ -132,7 +153,7 @@ function sendConfirmationEmail_(data) {
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
     `서류 검토 후 결과를 이메일로 안내드리겠습니다.\n` +
     `감사합니다.\n\n` +
-    `KCR 2026 사무국`;
+    `KCR 2026 사무국 드림`;
 
   GmailApp.sendEmail(data.email, subject, body, { name: "KCR2026 운영요원 모집" });
 }
@@ -301,31 +322,41 @@ function onStatusChange(e) {
 
 // ── 상태 변경 이메일 ──────────────────────────────────────────
 function sendStatusChangeEmail_(email, name, status) {
-  let statusMsg = "";
+  let subject = "";
+  let body = "";
+
   switch (status) {
     case "서류검토중":
-      statusMsg = "지원서를 검토 중입니다. 결과는 이메일로 안내드리겠습니다.";
+      subject = "[KCR2026] 운영요원 지원서 검토 안내";
+      body =
+        `${name || ""}님, 안녕하세요.\n\n` +
+        `KCR 2026 운영요원에 지원해주셔서 진심으로 감사드립니다.\n\n` +
+        `현재 제출하신 지원서를 검토 중에 있으며, 검토가 완료되는 대로 결과를 이메일로 안내드리겠습니다.\n\n` +
+        `조금만 기다려 주시면 감사하겠습니다.\n\n` +
+        `KCR 2026 사무국 드림`;
       break;
     case "승인":
-      statusMsg = "운영요원으로 선발되셨습니다! 추후 상세 안내 메일을 발송드리겠습니다.";
+      subject = "[KCR2026] 운영요원 선발 안내";
+      body =
+        `${name || ""}님, 안녕하세요.\n\n` +
+        `KCR 2026 운영요원 모집에 지원해주셔서 감사드립니다.\n\n` +
+        `서류 검토 결과, ${name || ""}님을 KCR 2026 운영요원으로 선발하게 되었습니다.\n` +
+        `함께하게 되어 정말 기쁩니다!\n\n` +
+        `오리엔테이션 일정 및 상세 안내는 추후 별도 이메일로 안내드리겠습니다.\n\n` +
+        `KCR 2026 사무국 드림`;
       break;
     case "거절":
-      statusMsg = "안타깝게도 이번 모집에서는 함께하지 못하게 되었습니다. 지원해주셔서 감사합니다.";
+      subject = "[KCR2026] 운영요원 지원 결과 안내";
+      body =
+        `${name || ""}님, 안녕하세요.\n\n` +
+        `KCR 2026 운영요원 모집에 소중한 관심을 가져주시고 지원해주셔서 진심으로 감사드립니다.\n\n` +
+        `신중한 검토 끝에, 아쉽게도 이번에는 함께하지 못하게 되었습니다.\n` +
+        `지원해주신 열정과 관심에 깊이 감사드리며, ${name || ""}님의 앞날을 진심으로 응원하겠습니다.\n\n` +
+        `KCR 2026 사무국 드림`;
       break;
     default:
-      return; // 기타 상태는 이메일 발송하지 않음
+      return;
   }
-
-  const subject = `[KCR2026] 운영요원 지원 결과 안내`;
-  const body =
-    `${name || ""}님, 안녕하세요.\n\n` +
-    `KCR 2026 운영요원 지원 관련 안내드립니다.\n\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `현재 상태: ${status}\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `${statusMsg}\n\n` +
-    `감사합니다.\n\n` +
-    `KCR 2026 사무국`;
 
   GmailApp.sendEmail(email, subject, body, { name: "KCR2026 운영요원 모집" });
 }
