@@ -428,12 +428,12 @@ function tglYN(key, label, f, fieldHTML) {
 // ── 다중 항목 입력 헬퍼 ─────────────────────────────────────
 function multiEntryHTML(list, prefix) {
   const rows = list.map((e, i) => `
-    <div style="${i<list.length-1?'margin-bottom:10px':''}">
-      ${list.length>1?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:12px;color:#8E8E93">항목 ${i+1}</span><button type="button" data-rm="${prefix}" data-idx="${i}" style="font-size:11px;color:#FF3B30;background:none;border:0.5px solid #FF3B30;border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit">삭제</button></div>`:''}
-      <label style="font-size:12px;color:#8E8E93;display:block;margin-bottom:4px">이름</label>
-      <input type="text" id="${prefix}-name-${i}" placeholder="이름" value="${(e.name||'').replace(/"/g,'&quot;')}" style="width:100%;padding:10px 12px;border:0.5px solid #E5E5EA;border-radius:8px;font-size:15px;font-family:inherit;background:#fff;color:#1C1C1E;outline:none;margin-bottom:6px;box-sizing:border-box;-webkit-appearance:none">
-      <label style="font-size:12px;color:#8E8E93;display:block;margin-bottom:4px">내용</label>
-      <textarea id="${prefix}-content-${i}" rows="2" placeholder="내용" style="width:100%;padding:10px 12px;border:0.5px solid #E5E5EA;border-radius:8px;font-size:15px;font-family:inherit;background:#fff;color:#1C1C1E;outline:none;resize:none;line-height:1.5;box-sizing:border-box">${e.content||''}</textarea>
+    <div class="sub-field" style="${i<list.length-1?'margin-bottom:6px':''}">
+      ${list.length>1?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span>항목 ${i+1}</span><button type="button" data-rm="${prefix}" data-idx="${i}" style="font-size:11px;color:#FF3B30;background:none;border:0.5px solid #FF3B30;border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit">삭제</button></div>`:''}
+      <label>이름</label>
+      <input type="text" id="${prefix}-name-${i}" placeholder="이름" value="${(e.name||'').replace(/"/g,'&quot;')}" style="margin-bottom:6px">
+      <label>내용</label>
+      <textarea id="${prefix}-content-${i}" rows="2" placeholder="내용">${e.content||''}</textarea>
     </div>`).join('');
   return rows + `<button type="button" data-add="${prefix}" style="width:100%;margin-top:8px;padding:9px;border:0.5px dashed #185FA5;border-radius:8px;color:#185FA5;background:transparent;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">+ 추가</button>`;
 }
@@ -668,7 +668,7 @@ const VIEWS = {
     <div class="content">
       <div class="card">
         <div class="card-label">TG/연자료 항목</div>
-        <textarea id="i-tg-d" rows="4" placeholder="자유 기입">${f.tg_d||''}</textarea>
+        <textarea id="i-tg-d" rows="4" placeholder="이슈 내용">${f.tg_d||''}</textarea>
       </div>
       <div class="card">
         <div class="card-label">기타</div>
