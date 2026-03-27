@@ -212,8 +212,8 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbx03VP97f5LoHGh0tVgyinj
 // 상수 정의
 // ============================================================
 const ROLES = ["세션장", "등록 데스크", "프리뷰", "포스터"];
-const DATES = ["5/14", "5/15", "5/16"];
-const DATE_LABEL = { "5/14": "5/14 (목)", "5/15": "5/15 (금)", "5/16": "5/16 (토)" };
+const DATES = ["4/13", "5/14", "5/15", "5/16"];
+const DATE_LABEL = { "4/13": "4/13(수) - 사전교육", "5/14": "5/14 (목)", "5/15": "5/15 (금)", "5/16": "5/16 (토)" };
 const TIME_SLOTS = ["전일", "오전", "오후", "불가"];
 const EDU_OPTIONS = ["고등학교 졸업", "대학교 재학", "대학교 졸업", "대학원 재학", "대학원 졸업"];
 const ENROLL_OPTIONS = ["재학", "휴학", "졸업", "해당없음"];
@@ -235,7 +235,7 @@ let S = {
   english: "", other_lang: "",
   // step 4
   roles: [],
-  avail: { "5/14": "", "5/15": "", "5/16": "" },
+  avail: { "4/13": "", "5/14": "", "5/15": "", "5/16": "" },
   // step 5
   privacy: false,
   // meta
@@ -715,7 +715,7 @@ function bindEvents() {
       education: "", enrollment: "", major: "", intro: "",
       experience: "", exp_list: [{ event: "", role: "", duties: "" }],
       english: "", other_lang: "", roles: [],
-      avail: { "5/14": "", "5/15": "", "5/16": "" },
+      avail: { "4/13": "", "5/14": "", "5/15": "", "5/16": "" },
       privacy: false, submitted: false
     };
     render();
@@ -839,6 +839,7 @@ async function submitApplication() {
     english: S.english,
     other_lang: S.other_lang,
     roles: S.roles.join(', '),
+    avail_13: S.avail['4/13'],
     avail_14: S.avail['5/14'],
     avail_15: S.avail['5/15'],
     avail_16: S.avail['5/16']
