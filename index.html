@@ -284,7 +284,7 @@ const P = {
 const ROOMS = Object.keys(P);
 const DATES = ["5/14", "5/15", "5/16"];
 const DATE_KO = { "5/14": "5월 14일 (목)", "5/15": "5월 15일 (금)", "5/16": "5월 16일 (토)" };
-const ZONES = ["세션장", "등록 데스크", "프리뷰 데스크", "TG/연자료"];
+const ZONES = ["세션장", "등록 데스크", "프리뷰 데스크", "TG/연자료", "포스터"];
 
 // ── 폼 초기값 ─────────────────────────────────────────────
 function emptySessionForm() {
@@ -304,7 +304,10 @@ function emptyPreviewForm() {
   return { sys:"", sys_d:"", speaker:"", spk_list:[{name:'',content:''}], etc_d:"" };
 }
 function emptyTgForm() {
-  return { speaker:"", spk_list:[{name:'',content:''}], etc_d:"" };
+  return { tg_d:"", etc_d:"" };
+}
+function emptyPosterForm() {
+  return { noshow_list:[{name:'',content:''}], radio:"", radio_d:"" };
 }
 
 // ── 앱 상태 ───────────────────────────────────────────────
@@ -320,6 +323,7 @@ let S = {
   rf: emptyRegForm(),
   pf: emptyPreviewForm(),
   tgf: emptyTgForm(),
+  posterf: emptyPosterForm(),
   log: [],
   submitted: {},
   editing: false
@@ -406,6 +410,18 @@ function tgl(key, label, f, fieldHTML) {
       '<div class="toggle-btn '+(f[key]==='이슈'?'issue':'')+'" data-tkey="'+key+'" data-tval="이슈">이슈</div>' +
     '</div>' +
     (f[key]==='이슈' ? '<div class="sub-field">'+fieldHTML+'</div>' : '') +
+  '</div>';
+}
+
+// ── 있음/없음 토글 ───────────────────────────────────────────
+function tglYN(key, label, f, fieldHTML) {
+  return '<div class="toggle-row">' +
+    (label ? '<div class="toggle-label">'+label+'</div>' : '') +
+    '<div class="toggle-group">' +
+      '<div class="toggle-btn '+(f[key]==='없음'?'ok':'')+'" data-tkey="'+key+'" data-tval="없음">없음</div>' +
+      '<div class="toggle-btn '+(f[key]==='있음'?'issue':'')+'" data-tkey="'+key+'" data-tval="있음">있음</div>' +
+    '</div>' +
+    (f[key]==='있음' ? '<div class="sub-field">'+fieldHTML+'</div>' : '') +
   '</div>';
 }
 
@@ -613,6 +629,32 @@ const VIEWS = {
     </div>`;
   },
 
+  // ─── 포스터 폼 ───
+  poster_form: () => {
+    const f = S.posterf;
+    return `
+    <div class="topbar">
+      <div class="topbar-back" id="btn-back-desk">‹</div>
+      <div class="topbar-title">포스터</div>
+      <span class="badge">${S.date}</span>
+    </div>
+    ${stepsHTML(2, 2)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">참가자 관리 — NO SHOW</div>
+        ${multiEntryHTML(f.noshow_list||[{name:'',content:''}], 'noshow')}
+      </div>
+      <div class="card">
+        <div class="card-label">송수신기 관리</div>
+        ${tglYN('radio', '', f, '<textarea id="i-radio-d" rows="2" placeholder="이슈 내용">'+(f.radio_d||'')+'</textarea>')}
+      </div>
+      ${S.editing
+        ? '<button class="btn-edit" id="btn-submit-desk">수정하기</button>'
+        : '<button class="btn-primary" id="btn-submit-desk">제출하기</button>'}
+      <button class="btn-ghost" id="btn-back-desk2">이전으로</button>
+    </div>`;
+  },
+
   // ─── TG/연자료 폼 ───
   tg_form: () => {
     const f = S.tgf;
@@ -625,8 +667,8 @@ const VIEWS = {
     ${stepsHTML(2, 2)}
     <div class="content">
       <div class="card">
-        <div class="card-label">연자 비고</div>
-        ${tgl('speaker', '', f, multiEntryHTML(f.spk_list||[{name:'',content:''}], 'tg-spk'))}
+        <div class="card-label">TG/연자료 항목</div>
+        <textarea id="i-tg-d" rows="4" placeholder="자유 기입">${f.tg_d||''}</textarea>
       </div>
       <div class="card">
         <div class="card-label">기타</div>
@@ -769,6 +811,16 @@ function bindEvents() {
         S.editing = false;
       }
       S.view = 'tg_form';
+    } else if (S.zone === '포스터') {
+      const dk = '포스터|'+S.date;
+      if (S.submitted[dk]) {
+        S.posterf = JSON.parse(JSON.stringify(S.submitted[dk]));
+        S.editing = true;
+      } else {
+        S.posterf = emptyPosterForm();
+        S.editing = false;
+      }
+      S.view = 'poster_form';
     }
     render();
   });
@@ -815,6 +867,7 @@ function bindEvents() {
     S.rf = emptyRegForm();
     S.pf = emptyPreviewForm();
     S.tgf = emptyTgForm();
+    S.posterf = emptyPosterForm();
     S.editing = false;
     S.view = 'home';
     render();
@@ -827,7 +880,7 @@ function bindEvents() {
       const p = el.dataset.add;
       if (p === 'inq') { S.rf.inq_list.push({name:'',content:''}); }
       else if (p === 'spk') { S.pf.spk_list.push({name:'',content:''}); }
-      else if (p === 'tg-spk') { S.tgf.spk_list.push({name:'',content:''}); }
+      else if (p === 'noshow') { S.posterf.noshow_list.push({name:'',content:''}); }
       render();
     }));
   document.querySelectorAll('[data-rm]').forEach(el =>
@@ -836,7 +889,7 @@ function bindEvents() {
       const p = el.dataset.rm, i = parseInt(el.dataset.idx);
       if (p === 'inq') { S.rf.inq_list.splice(i,1); if(!S.rf.inq_list.length) S.rf.inq_list=[{name:'',content:''}]; }
       else if (p === 'spk') { S.pf.spk_list.splice(i,1); if(!S.pf.spk_list.length) S.pf.spk_list=[{name:'',content:''}]; }
-      else if (p === 'tg-spk') { S.tgf.spk_list.splice(i,1); if(!S.tgf.spk_list.length) S.tgf.spk_list=[{name:'',content:''}]; }
+      else if (p === 'noshow') { S.posterf.noshow_list.splice(i,1); if(!S.posterf.noshow_list.length) S.posterf.noshow_list=[{name:'',content:''}]; }
       render();
     }));
 
@@ -867,6 +920,10 @@ function bindEvents() {
         const dk = 'TG/연자료|'+S.date;
         if (S.submitted[dk]) S.tgf = JSON.parse(JSON.stringify(S.submitted[dk]));
         S.view = 'tg_form';
+      } else if (entry.zone === '포스터') {
+        const dk = '포스터|'+S.date;
+        if (S.submitted[dk]) S.posterf = JSON.parse(JSON.stringify(S.submitted[dk]));
+        S.view = 'poster_form';
       }
       render();
     }));
@@ -877,7 +934,8 @@ function getCurrentForm() {
   if (S.view === 'sess_form') return S.sf;
   if (S.view === 'reg_form')  return S.rf;
   if (S.view === 'prev_form') return S.pf;
-  if (S.view === 'tg_form')   return S.tgf;
+  if (S.view === 'tg_form')     return S.tgf;
+  if (S.view === 'poster_form') return S.posterf;
   return S.sf;
 }
 
@@ -920,13 +978,15 @@ function saveCurrentForm() {
     if (g('i-etc-d'))   f.etc_d   = g('i-etc-d').value;
   } else if (S.view === 'tg_form') {
     const f = S.tgf;
-    if (f.speaker === '이슈') {
-      f.spk_list = (f.spk_list||[{name:'',content:''}]).map((e,i) => ({
-        name: (g('tg-spk-name-'+i)||{value:e.name||''}).value,
-        content: (g('tg-spk-content-'+i)||{value:e.content||''}).value
-      }));
-    }
+    if (g('i-tg-d'))     f.tg_d  = g('i-tg-d').value;
     if (g('i-tg-etc-d')) f.etc_d = g('i-tg-etc-d').value;
+  } else if (S.view === 'poster_form') {
+    const f = S.posterf;
+    f.noshow_list = (f.noshow_list||[{name:'',content:''}]).map((e,i) => ({
+      name: (g('noshow-name-'+i)||{value:e.name||''}).value,
+      content: (g('noshow-content-'+i)||{value:e.content||''}).value
+    }));
+    if (g('i-radio-d')) f.radio_d = g('i-radio-d').value;
   }
 }
 
@@ -1020,14 +1080,23 @@ async function submitDesk() {
       etc_d: f.etc_d,
       edit: S.editing
     };
-  } else {
+  } else if (zone === 'TG/연자료') {
     const f = S.tgf;
-    hasIssue = f.speaker==='이슈';
+    hasIssue = false;
     payload = {
       timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
       staff: S.staff, zone, date: S.date,
-      speaker: f.speaker, spk_list: JSON.stringify(f.spk_list||[]),
-      etc_d: f.etc_d,
+      tg_d: f.tg_d, etc_d: f.etc_d,
+      edit: S.editing
+    };
+  } else {
+    const f = S.posterf;
+    hasIssue = f.radio==='있음';
+    payload = {
+      timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+      staff: S.staff, zone, date: S.date,
+      noshow_list: JSON.stringify(f.noshow_list||[]),
+      radio: f.radio, radio_d: f.radio_d,
       edit: S.editing
     };
   }
@@ -1041,7 +1110,7 @@ async function submitDesk() {
     });
 
     const dk = zone+'|'+S.date;
-    const curF = zone==='등록 데스크' ? S.rf : zone==='프리뷰 데스크' ? S.pf : S.tgf;
+    const curF = zone==='등록 데스크' ? S.rf : zone==='프리뷰 데스크' ? S.pf : zone==='TG/연자료' ? S.tgf : S.posterf;
     S.submitted[dk] = JSON.parse(JSON.stringify(curF));
 
     if (S.editing) {
