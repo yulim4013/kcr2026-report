@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KCR 2026 운영요원 모집</title>
+<style>
+  /* ── reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif;
+         background: #F2F2F7; color: #1C1C1E; min-height: 100vh; }
+
+  /* ── layout ── */
+  .phone { max-width: 430px; margin: 0 auto; background: #F2F2F7; min-height: 100vh; padding-bottom: 32px; }
+  .topbar { background: #fff; border-bottom: 0.5px solid rgba(0,0,0,0.1);
+            padding: 14px 16px; display: flex; align-items: center; gap: 10px;
+            position: sticky; top: 0; z-index: 10; }
+  .topbar-title { font-size: 15px; font-weight: 600; flex: 1; }
+  .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+           background: #E6F1FB; color: #185FA5; }
+
+  /* ── key visual ── */
+  .kv-wrap { width: 100%; background: #fff; }
+  .kv-wrap img { width: 100%; display: block; }
+  .kv-placeholder { width: 100%; height: 180px; background: linear-gradient(135deg, #185FA5 0%, #0C447C 100%);
+                    display: flex; align-items: center; justify-content: center;
+                    color: #fff; font-size: 20px; font-weight: 700; letter-spacing: .05em; }
+
+  /* ── progress ── */
+  .steps { display: flex; gap: 5px; padding: 12px 16px 0; }
+  .step { flex: 1; height: 3px; border-radius: 2px; background: #E5E5EA; }
+  .step.done { background: #34C759; }
+  .step.active { background: #185FA5; }
+
+  /* ── content ── */
+  .content { padding: 12px 16px; }
+  .card { background: #fff; border-radius: 12px; border: 0.5px solid rgba(0,0,0,0.08);
+          padding: 14px 16px; margin-bottom: 10px; }
+  .card-label { font-size: 11px; font-weight: 600; color: #8E8E93;
+                letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* ── form elements ── */
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12px; color: #8E8E93; margin-bottom: 5px; }
+  .field label .req { color: #FF3B30; }
+  input[type=text], input[type=email], input[type=tel], input[type=date], select, textarea {
+    width: 100%; padding: 10px 12px; border: 0.5px solid #E5E5EA; border-radius: 8px;
+    font-size: 15px; font-family: inherit; background: #F9F9F9; color: #1C1C1E;
+    outline: none; transition: border-color .15s; -webkit-appearance: none; }
+  input:focus, select:focus, textarea:focus { border-color: #185FA5; background: #fff; }
+  textarea { resize: none; line-height: 1.5; }
+  .field-hint { font-size: 11px; color: #8E8E93; margin-top: 3px; }
+  .char-count { font-size: 11px; color: #8E8E93; text-align: right; margin-top: 3px; }
+  .char-count.over { color: #FF3B30; }
+
+  /* ── chips ── */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 8px 14px; border: 0.5px solid #E5E5EA; border-radius: 20px;
+          font-size: 13px; color: #8E8E93; cursor: pointer; background: #fff;
+          transition: all .15s; white-space: nowrap; }
+  .chip.on { background: #185FA5; border-color: #185FA5; color: #fff; font-weight: 600; }
+
+  /* ── checkbox (multi-select) ── */
+  .check-group { display: flex; flex-direction: column; gap: 5px; }
+  .check-item { display: flex; align-items: center; gap: 9px; padding: 10px 12px;
+                border: 0.5px solid #E5E5EA; border-radius: 8px; cursor: pointer;
+                font-size: 14px; color: #1C1C1E; transition: all .15s; background: #fff; }
+  .check-item:hover { background: #F2F2F7; }
+  .check-item.on { border-color: #185FA5; background: #E6F1FB; color: #0C447C; }
+  .check-box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid #C7C7CC;
+               flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+               font-size: 12px; color: transparent; transition: all .15s; }
+  .check-item.on .check-box { border-color: #185FA5; background: #185FA5; color: #fff; }
+  .check-limit { font-size: 12px; color: #8E8E93; margin-bottom: 6px; }
+
+  /* ── experience entry ── */
+  .exp-entry { background: #F9F9F9; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+  .exp-entry:last-of-type { margin-bottom: 0; }
+  .exp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .exp-header span { font-size: 12px; color: #8E8E93; font-weight: 600; }
+  .exp-remove { font-size: 11px; color: #FF3B30; background: none; border: 0.5px solid #FF3B30;
+                border-radius: 6px; padding: 2px 8px; cursor: pointer; font-family: inherit; }
+  .exp-field { margin-bottom: 6px; }
+  .exp-field:last-child { margin-bottom: 0; }
+  .exp-field label { font-size: 11px; color: #8E8E93; display: block; margin-bottom: 3px; }
+  .exp-field input { width: 100%; padding: 8px 10px; border: 0.5px solid #E5E5EA; border-radius: 6px;
+                     font-size: 14px; font-family: inherit; background: #fff; color: #1C1C1E;
+                     outline: none; -webkit-appearance: none; }
+  .exp-field input:focus { border-color: #185FA5; }
+
+  /* ── availability table ── */
+  .avail-table { width: 100%; }
+  .avail-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .avail-row:last-child { margin-bottom: 0; }
+  .avail-date { font-size: 13px; font-weight: 600; color: #1C1C1E; min-width: 80px; }
+  .avail-chips { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+  .avail-chip { padding: 6px 10px; border: 0.5px solid #E5E5EA; border-radius: 16px;
+                font-size: 12px; color: #8E8E93; cursor: pointer; background: #fff;
+                transition: all .15s; white-space: nowrap; }
+  .avail-chip.on { background: #185FA5; border-color: #185FA5; color: #fff; font-weight: 600; }
+
+  /* ── review summary ── */
+  .review-section { margin-bottom: 14px; }
+  .review-section:last-child { margin-bottom: 0; }
+  .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .review-title { font-size: 13px; font-weight: 600; color: #185FA5; }
+  .review-edit { font-size: 12px; color: #185FA5; cursor: pointer; background: none; border: none;
+                 font-family: inherit; font-weight: 600; }
+  .review-row { display: flex; padding: 5px 0; font-size: 13px; border-bottom: 0.5px solid #F2F2F7; }
+  .review-row:last-child { border-bottom: none; }
+  .review-label { color: #8E8E93; min-width: 80px; flex-shrink: 0; }
+  .review-value { color: #1C1C1E; flex: 1; word-break: break-all; }
+
+  /* ── consent ── */
+  .consent-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px;
+                 background: #F9F9F9; border-radius: 8px; cursor: pointer; }
+  .consent-box { width: 20px; height: 20px; border-radius: 4px; border: 1.5px solid #C7C7CC;
+                 flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+                 font-size: 14px; color: transparent; margin-top: 1px; transition: all .15s; }
+  .consent-row.on .consent-box { border-color: #185FA5; background: #185FA5; color: #fff; }
+  .consent-text { font-size: 13px; color: #1C1C1E; line-height: 1.5; }
+
+  /* ── buttons ── */
+  .btn-primary { width: 100%; padding: 14px; background: #185FA5; color: #fff;
+                 border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+                 cursor: pointer; margin-top: 4px; font-family: inherit; transition: background .15s; }
+  .btn-primary:hover { background: #0C447C; }
+  .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-ghost { width: 100%; padding: 12px; background: #fff; color: #8E8E93;
+               border: 0.5px solid #E5E5EA; border-radius: 12px; font-size: 15px;
+               cursor: pointer; margin-top: 6px; font-family: inherit; }
+  .btn-ghost:hover { background: #F2F2F7; }
+  .btn-nav { display: flex; gap: 8px; margin-top: 4px; }
+  .btn-back { flex: 1; padding: 14px; background: #fff; color: #8E8E93;
+              border: 0.5px solid #E5E5EA; border-radius: 12px; font-size: 15px; font-weight: 500;
+              cursor: pointer; font-family: inherit; text-align: center; }
+  .btn-next { flex: 2; padding: 14px; background: #185FA5; color: #fff;
+              border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+              cursor: pointer; font-family: inherit; transition: background .15s; }
+  .btn-next:hover { background: #0C447C; }
+
+  /* ── success ── */
+  .success-wrap { text-align: center; padding: 28px 16px; }
+  .ok-circle { width: 60px; height: 60px; border-radius: 50%; background: #D1F2E0;
+               display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+
+  /* ── loading overlay ── */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+             align-items: center; justify-content: center; z-index: 100; }
+  .overlay.show { display: flex; }
+  .spinner-box { background: #fff; border-radius: 16px; padding: 28px 32px;
+                 text-align: center; min-width: 160px; }
+  .spinner { width: 32px; height: 32px; border: 3px solid #E5E5EA;
+             border-top-color: #185FA5; border-radius: 50%;
+             animation: spin .7s linear infinite; margin: 0 auto 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-text { font-size: 14px; color: #8E8E93; }
+
+  /* ── error toast ── */
+  .toast { display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+           background: #FF3B30; color: #fff; padding: 10px 20px; border-radius: 20px;
+           font-size: 14px; font-weight: 600; z-index: 200; white-space: nowrap; }
+  .toast.show { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ── 설정 필요 안내 ── -->
+<div id="setup-screen" class="phone" style="display:none">
+  <div class="topbar">
+    <div class="topbar-title">운영요원 모집</div>
+    <span class="badge">KCR 2026</span>
+  </div>
+  <div class="content" style="padding-top:24px">
+    <div class="card">
+      <div class="card-label">초기 설정 필요</div>
+      <div style="background:#E6F1FB;border-radius:10px;padding:12px 14px;font-size:13px;color:#0C447C;line-height:1.6;margin-bottom:10px">
+        이 파일을 사용하려면 <b>Apps Script Web App URL</b>을 입력해야 합니다.
+      </div>
+      <div class="field">
+        <label>Apps Script Web App URL</label>
+        <input type="text" id="temp-url" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      <button class="btn-primary" onclick="applyTempUrl()">적용하고 시작</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 메인 앱 ── -->
+<div id="main-app" class="phone" style="display:none">
+  <div id="app"></div>
+</div>
+
+<!-- ── 로딩 오버레이 ── -->
+<div class="overlay" id="overlay">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <div class="spinner-text">제출 중...</div>
+  </div>
+</div>
+
+<!-- ── 에러 토스트 ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// GAS Web App URL (배포 후 교체)
+// ============================================================
+const GAS_URL = "https://script.google.com/macros/s/AKfycbx03VP97f5LoHGh0tVgyinjbXBqMB7XFq3wYSVqN71XUBLrlbytyWMy6aDx-yPwnTS9/exec";
+
+// ============================================================
+// 상수 정의
+// ============================================================
+const ROLES = ["세션장", "등록 데스크", "프리뷰", "포스터"];
+const DATES = ["5/14", "5/15", "5/16"];
+const DATE_LABEL = { "5/14": "5/14 (목)", "5/15": "5/15 (금)", "5/16": "5/16 (토)" };
+const TIME_SLOTS = ["전일", "오전", "오후", "불가"];
+const EDU_OPTIONS = ["고등학교 졸업", "대학교 재학", "대학교 졸업", "대학원 재학", "대학원 졸업"];
+const ENROLL_OPTIONS = ["재학", "휴학", "졸업", "해당없음"];
+const ENG_OPTIONS = ["상", "중", "하"];
+
+// ============================================================
+// 앱 상태
+// ============================================================
+let GAS = GAS_URL;
+let S = {
+  step: 1,
+  // step 1
+  name: "", gender: "", birth: "", phone: "", email: "", address: "",
+  // step 2
+  education: "", enrollment: "", major: "", intro: "",
+  // step 3
+  experience: "",
+  exp_list: [{ event: "", role: "", duties: "" }],
+  english: "", other_lang: "",
+  // step 4
+  roles: [],
+  avail: { "5/14": "", "5/15": "", "5/16": "" },
+  // step 5
+  privacy: false,
+  // meta
+  submitted: false
+};
+
+// ============================================================
+// 유틸리티
+// ============================================================
+const g = id => document.getElementById(id);
+function showOverlay(on) { g('overlay').classList.toggle('show', on); }
+function showToast(msg) {
+  const t = g('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function stepsHTML(total, current) {
+  return '<div class="steps">' + Array.from({length: total}, (_, i) => {
+    const idx = i + 1;
+    return '<div class="step ' + (idx < current ? 'done' : idx === current ? 'active' : '') + '"></div>';
+  }).join('') + '</div>';
+}
+
+function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+
+// ── 전화번호 자동 포매팅 ──
+function formatPhone(v) {
+  const n = v.replace(/[^0-9]/g, '').slice(0, 11);
+  if (n.length <= 3) return n;
+  if (n.length <= 7) return n.slice(0,3) + '-' + n.slice(3);
+  return n.slice(0,3) + '-' + n.slice(3,7) + '-' + n.slice(7);
+}
+
+// ── localStorage 중복 체크 ──
+function checkSubmitted() {
+  try {
+    const d = localStorage.getItem('kcr2026_recruit_submitted');
+    if (d) return JSON.parse(d);
+  } catch(e) {}
+  return null;
+}
+function markSubmitted() {
+  localStorage.setItem('kcr2026_recruit_submitted', JSON.stringify({
+    email: S.email, name: S.name, ts: new Date().toISOString()
+  }));
+}
+
+// ============================================================
+// 초기화
+// ============================================================
+window.onload = () => {
+  const prev = checkSubmitted();
+  if (prev) {
+    S.submitted = true;
+    S.name = prev.name || '';
+    S.email = prev.email || '';
+  }
+  if (!GAS) {
+    g('setup-screen').style.display = 'block';
+  } else {
+    g('main-app').style.display = 'block';
+    render();
+  }
+};
+
+function applyTempUrl() {
+  const url = g('temp-url').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    showToast('올바른 Apps Script URL을 입력해주세요');
+    return;
+  }
+  GAS = url;
+  g('setup-screen').style.display = 'none';
+  g('main-app').style.display = 'block';
+  render();
+}
+
+// ============================================================
+// 렌더링
+// ============================================================
+function render() {
+  g('app').innerHTML = VIEWS[S.submitted ? 'success' : 'step' + S.step]();
+  bindEvents();
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// 폼 입력값 저장
+// ============================================================
+function saveInputs() {
+  switch(S.step) {
+    case 1:
+      const n = g('i-name'); if(n) S.name = n.value.trim();
+      const b = g('i-birth'); if(b) S.birth = b.value;
+      const p = g('i-phone'); if(p) S.phone = p.value.trim();
+      const e = g('i-email'); if(e) S.email = e.value.trim();
+      const a = g('i-addr'); if(a) S.address = a.value.trim();
+      break;
+    case 2:
+      const m = g('i-major'); if(m) S.major = m.value.trim();
+      const it = g('i-intro'); if(it) S.intro = it.value.trim();
+      break;
+    case 3:
+      // 경험 항목 저장
+      S.exp_list.forEach((_, i) => {
+        const ev = g('exp-event-'+i); if(ev) S.exp_list[i].event = ev.value.trim();
+        const rl = g('exp-role-'+i); if(rl) S.exp_list[i].role = rl.value.trim();
+        const dt = g('exp-duties-'+i); if(dt) S.exp_list[i].duties = dt.value.trim();
+      });
+      const ol = g('i-otherlang'); if(ol) S.other_lang = ol.value.trim();
+      break;
+  }
+}
+
+// ============================================================
+// 유효성 검증
+// ============================================================
+function validate(step) {
+  switch(step) {
+    case 1:
+      if (!S.name || S.name.length < 2) { showToast('이름을 입력해주세요 (2자 이상)'); return false; }
+      if (!S.gender) { showToast('성별을 선택해주세요'); return false; }
+      if (!S.birth) { showToast('생년월일을 입력해주세요'); return false; }
+      if (!S.phone || !/^01[016789]-?\d{3,4}-?\d{4}$/.test(S.phone.replace(/-/g,''))) {
+        showToast('올바른 전화번호를 입력해주세요'); return false; }
+      if (!S.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(S.email)) {
+        showToast('올바른 이메일을 입력해주세요'); return false; }
+      if (!S.address || S.address.length < 2) { showToast('주소를 입력해주세요'); return false; }
+      return true;
+    case 2:
+      if (!S.education) { showToast('최종학력을 선택해주세요'); return false; }
+      if (!S.enrollment) { showToast('재학상태를 선택해주세요'); return false; }
+      if (!S.major) { showToast('전공을 입력해주세요'); return false; }
+      if (!S.intro) { showToast('자기소개를 입력해주세요'); return false; }
+      if (S.intro.length > 150) { showToast('자기소개는 150자 이내로 작성해주세요'); return false; }
+      return true;
+    case 3:
+      if (!S.experience) { showToast('운영요원 경험 여부를 선택해주세요'); return false; }
+      if (S.experience === '유' && (!S.exp_list[0].event || !S.exp_list[0].role)) {
+        showToast('참여행사 정보를 입력해주세요 (행사명, 담당파트 필수)'); return false; }
+      if (!S.english) { showToast('영어 능력을 선택해주세요'); return false; }
+      return true;
+    case 4:
+      if (S.roles.length === 0) { showToast('희망 업무를 1개 이상 선택해주세요'); return false; }
+      for (const d of DATES) {
+        if (!S.avail[d]) { showToast(DATE_LABEL[d] + ' 참여 가능 여부를 선택해주세요'); return false; }
+      }
+      return true;
+    case 5:
+      if (!S.privacy) { showToast('개인정보 수집에 동의해주세요'); return false; }
+      return true;
+  }
+  return true;
+}
+
+// ============================================================
+// 뷰 정의
+// ============================================================
+const VIEWS = {
+
+  // ── Step 1: 기본 정보 ──
+  step1: () => `
+    <div class="topbar">
+      <div class="topbar-title">운영요원 모집</div>
+      <span class="badge">KCR 2026</span>
+    </div>
+    <div class="kv-wrap">
+      <div class="kv-placeholder">KCR 2026</div>
+    </div>
+    ${stepsHTML(5, 1)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">기본 정보</div>
+        <div class="field">
+          <label>이름 <span class="req">*</span></label>
+          <input id="i-name" type="text" placeholder="이름 입력" value="${esc(S.name)}">
+        </div>
+        <div class="field">
+          <label>성별 <span class="req">*</span></label>
+          <div class="chip-group">
+            ${['남','여'].map(v => '<div class="chip '+(S.gender===v?'on':'')+'" data-gender="'+v+'">'+v+'</div>').join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>생년월일 <span class="req">*</span></label>
+          <input id="i-birth" type="date" value="${S.birth}" min="1970-01-01" max="2010-12-31">
+        </div>
+        <div class="field">
+          <label>휴대전화 <span class="req">*</span></label>
+          <input id="i-phone" type="tel" placeholder="010-0000-0000" value="${esc(S.phone)}">
+        </div>
+        <div class="field">
+          <label>이메일 <span class="req">*</span></label>
+          <input id="i-email" type="email" placeholder="example@email.com" value="${esc(S.email)}">
+        </div>
+        <div class="field">
+          <label>주소 <span class="req">*</span></label>
+          <input id="i-addr" type="text" placeholder="동까지만 작성, 예: 서울특별시 강남구 역삼동" value="${esc(S.address)}">
+          <div class="field-hint">동까지만 작성해주세요</div>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-next">다음</button>
+    </div>
+  `,
+
+  // ── Step 2: 학력 정보 ──
+  step2: () => `
+    <div class="topbar">
+      <div class="topbar-title">운영요원 모집</div>
+      <span class="badge">KCR 2026</span>
+    </div>
+    ${stepsHTML(5, 2)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">학력 정보</div>
+        <div class="field">
+          <label>최종학력 <span class="req">*</span></label>
+          <div class="chip-group">
+            ${EDU_OPTIONS.map(v => '<div class="chip '+(S.education===v?'on':'')+'" data-edu="'+v+'">'+v+'</div>').join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>재학상태 <span class="req">*</span></label>
+          <div class="chip-group">
+            ${ENROLL_OPTIONS.map(v => '<div class="chip '+(S.enrollment===v?'on':'')+'" data-enroll="'+v+'">'+v+'</div>').join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>전공 <span class="req">*</span></label>
+          <input id="i-major" type="text" placeholder="전공 입력" value="${esc(S.major)}">
+        </div>
+        <div class="field">
+          <label>간단한 자기소개 <span class="req">*</span></label>
+          <textarea id="i-intro" rows="3" maxlength="150" placeholder="간단한 자기소개를 입력해주세요 (3줄 이내)">${esc(S.intro)}</textarea>
+          <div class="char-count ${S.intro.length > 150 ? 'over' : ''}" id="intro-count">${S.intro.length}/150</div>
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">이전</button>
+        <button class="btn-next" id="btn-next">다음</button>
+      </div>
+    </div>
+  `,
+
+  // ── Step 3: 경력 및 언어 ──
+  step3: () => {
+    let expHTML = '';
+    if (S.experience === '유') {
+      expHTML = '<div style="margin-top:8px">';
+      S.exp_list.forEach((e, i) => {
+        expHTML += `
+          <div class="exp-entry">
+            <div class="exp-header">
+              <span>참여행사 ${i+1}</span>
+              ${S.exp_list.length > 1 ? '<button type="button" class="exp-remove" data-rmexp="'+i+'">삭제</button>' : ''}
+            </div>
+            <div class="exp-field">
+              <label>행사명 ${i===0?'<span class="req">*</span>':''}</label>
+              <input id="exp-event-${i}" type="text" placeholder="행사명" value="${esc(e.event)}">
+            </div>
+            <div class="exp-field">
+              <label>담당파트 ${i===0?'<span class="req">*</span>':''}</label>
+              <input id="exp-role-${i}" type="text" placeholder="담당파트" value="${esc(e.role)}">
+            </div>
+            <div class="exp-field">
+              <label>업무내용</label>
+              <input id="exp-duties-${i}" type="text" placeholder="업무내용" value="${esc(e.duties)}">
+            </div>
+          </div>`;
+      });
+      if (S.exp_list.length < 3) {
+        expHTML += '<button type="button" class="btn-ghost" id="btn-add-exp" style="margin-top:6px;font-size:14px;padding:9px">+ 경험 추가</button>';
+      }
+      expHTML += '</div>';
+    }
+
+    return `
+    <div class="topbar">
+      <div class="topbar-title">운영요원 모집</div>
+      <span class="badge">KCR 2026</span>
+    </div>
+    ${stepsHTML(5, 3)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">경력 및 언어</div>
+        <div class="field">
+          <label>학술대회 운영요원 경험 <span class="req">*</span></label>
+          <div class="chip-group">
+            ${['유','무'].map(v => '<div class="chip '+(S.experience===v?'on':'')+'" data-exp="'+v+'">'+v+'</div>').join('')}
+          </div>
+        </div>
+        ${expHTML}
+      </div>
+      <div class="card">
+        <div class="card-label">언어 능력</div>
+        <div class="field">
+          <label>영어 <span class="req">*</span></label>
+          <div class="chip-group">
+            ${ENG_OPTIONS.map(v => '<div class="chip '+(S.english===v?'on':'')+'" data-eng="'+v+'">'+v+'</div>').join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>기타 언어</label>
+          <input id="i-otherlang" type="text" placeholder="예: 일본어 중급, 중국어 초급" value="${esc(S.other_lang)}">
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">이전</button>
+        <button class="btn-next" id="btn-next">다음</button>
+      </div>
+    </div>
+    `;
+  },
+
+  // ── Step 4: 희망 업무 및 참여 가능일 ──
+  step4: () => `
+    <div class="topbar">
+      <div class="topbar-title">운영요원 모집</div>
+      <span class="badge">KCR 2026</span>
+    </div>
+    ${stepsHTML(5, 4)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">희망 업무</div>
+        <div class="check-limit">최대 3개까지 선택 가능 (${S.roles.length}/3)</div>
+        <div class="check-group">
+          ${ROLES.map(r => `
+            <div class="check-item ${S.roles.includes(r)?'on':''}" data-role="${r}">
+              <div class="check-box">${S.roles.includes(r)?'✓':''}</div>
+              <span>${r}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">참여 가능일</div>
+        <div class="field-hint" style="margin-bottom:8px">각 날짜별 참여 가능 시간대를 선택해주세요</div>
+        <div class="avail-table">
+          ${DATES.map(d => `
+            <div class="avail-row">
+              <div class="avail-date">${DATE_LABEL[d]}</div>
+              <div class="avail-chips">
+                ${TIME_SLOTS.map(t => `<div class="avail-chip ${S.avail[d]===t?'on':''}" data-adate="${d}" data-atime="${t}">${t}</div>`).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">이전</button>
+        <button class="btn-next" id="btn-next">다음</button>
+      </div>
+    </div>
+  `,
+
+  // ── Step 5: 확인 및 제출 ──
+  step5: () => {
+    const expSummary = S.experience === '유'
+      ? S.exp_list.filter(e => e.event).map((e, i) => `${i+1}. ${e.event} / ${e.role} / ${e.duties}`).join('<br>')
+      : '없음';
+
+    return `
+    <div class="topbar">
+      <div class="topbar-title">운영요원 모집</div>
+      <span class="badge">KCR 2026</span>
+    </div>
+    ${stepsHTML(5, 5)}
+    <div class="content">
+      <div class="card">
+        <div class="review-section">
+          <div class="review-header">
+            <div class="review-title">기본 정보</div>
+            <button class="review-edit" data-goto="1">수정</button>
+          </div>
+          <div class="review-row"><span class="review-label">이름</span><span class="review-value">${esc(S.name)}</span></div>
+          <div class="review-row"><span class="review-label">성별</span><span class="review-value">${esc(S.gender)}</span></div>
+          <div class="review-row"><span class="review-label">생년월일</span><span class="review-value">${esc(S.birth)}</span></div>
+          <div class="review-row"><span class="review-label">전화</span><span class="review-value">${esc(S.phone)}</span></div>
+          <div class="review-row"><span class="review-label">이메일</span><span class="review-value">${esc(S.email)}</span></div>
+          <div class="review-row"><span class="review-label">주소</span><span class="review-value">${esc(S.address)}</span></div>
+        </div>
+        <div class="review-section">
+          <div class="review-header">
+            <div class="review-title">학력 정보</div>
+            <button class="review-edit" data-goto="2">수정</button>
+          </div>
+          <div class="review-row"><span class="review-label">최종학력</span><span class="review-value">${esc(S.education)}</span></div>
+          <div class="review-row"><span class="review-label">재학상태</span><span class="review-value">${esc(S.enrollment)}</span></div>
+          <div class="review-row"><span class="review-label">전공</span><span class="review-value">${esc(S.major)}</span></div>
+          <div class="review-row"><span class="review-label">자기소개</span><span class="review-value">${esc(S.intro)}</span></div>
+        </div>
+        <div class="review-section">
+          <div class="review-header">
+            <div class="review-title">경력 및 언어</div>
+            <button class="review-edit" data-goto="3">수정</button>
+          </div>
+          <div class="review-row"><span class="review-label">경험</span><span class="review-value">${esc(S.experience)}</span></div>
+          <div class="review-row"><span class="review-label">참여행사</span><span class="review-value">${expSummary}</span></div>
+          <div class="review-row"><span class="review-label">영어</span><span class="review-value">${esc(S.english)}</span></div>
+          <div class="review-row"><span class="review-label">기타 언어</span><span class="review-value">${esc(S.other_lang) || '-'}</span></div>
+        </div>
+        <div class="review-section">
+          <div class="review-header">
+            <div class="review-title">희망 업무 및 참여 가능일</div>
+            <button class="review-edit" data-goto="4">수정</button>
+          </div>
+          <div class="review-row"><span class="review-label">희망 업무</span><span class="review-value">${S.roles.join(', ')}</span></div>
+          ${DATES.map(d => `<div class="review-row"><span class="review-label">${DATE_LABEL[d]}</span><span class="review-value">${esc(S.avail[d])}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="consent-row ${S.privacy?'on':''}" id="consent-toggle">
+          <div class="consent-box">${S.privacy?'✓':''}</div>
+          <div class="consent-text">
+            개인정보 수집 및 이용에 동의합니다. 수집된 정보는 KCR 2026 운영요원 선발 목적으로만 사용되며, 선발 완료 후 파기됩니다.
+          </div>
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">이전</button>
+        <button class="btn-next" id="btn-submit">제출하기</button>
+      </div>
+    </div>
+    `;
+  },
+
+  // ── 제출 완료 ──
+  success: () => `
+    <div class="topbar">
+      <div class="topbar-title">운영요원 모집</div>
+      <span class="badge">KCR 2026</span>
+    </div>
+    <div class="content">
+      <div class="success-wrap">
+        <div class="ok-circle">
+          <span style="font-size:28px;color:#34C759">✓</span>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:#1C1C1E;margin-bottom:6px">지원서가 접수되었습니다</div>
+        <div style="font-size:14px;color:#8E8E93;margin-bottom:18px;line-height:1.6">
+          ${esc(S.name)}님의 지원서가 정상적으로 접수되었습니다.<br>
+          접수 확인 이메일이 <b>${esc(S.email)}</b>으로 발송되었습니다.<br>
+          서류 검토 후 결과를 이메일로 안내드리겠습니다.
+        </div>
+      </div>
+      <button class="btn-ghost" id="btn-new">새 지원서 작성</button>
+    </div>
+  `
+};
+
+// ============================================================
+// 이벤트 바인딩
+// ============================================================
+function bindEvents() {
+  // ── 다음/이전 버튼 ──
+  const btnNext = g('btn-next');
+  if (btnNext) btnNext.onclick = () => {
+    saveInputs();
+    if (validate(S.step)) { S.step++; render(); }
+  };
+  const btnPrev = g('btn-prev');
+  if (btnPrev) btnPrev.onclick = () => { saveInputs(); S.step--; render(); };
+
+  // ── 제출 버튼 ──
+  const btnSubmit = g('btn-submit');
+  if (btnSubmit) btnSubmit.onclick = () => {
+    if (validate(5)) submitApplication();
+  };
+
+  // ── 새 지원서 ──
+  const btnNew = g('btn-new');
+  if (btnNew) btnNew.onclick = () => {
+    localStorage.removeItem('kcr2026_recruit_submitted');
+    S = {
+      step: 1, name: "", gender: "", birth: "", phone: "", email: "", address: "",
+      education: "", enrollment: "", major: "", intro: "",
+      experience: "", exp_list: [{ event: "", role: "", duties: "" }],
+      english: "", other_lang: "", roles: [],
+      avail: { "5/14": "", "5/15": "", "5/16": "" },
+      privacy: false, submitted: false
+    };
+    render();
+  };
+
+  // ── Step 1: 성별 chip ──
+  document.querySelectorAll('[data-gender]').forEach(el => {
+    el.onclick = () => { S.gender = el.dataset.gender; render(); };
+  });
+
+  // ── Step 2: 학력 chip ──
+  document.querySelectorAll('[data-edu]').forEach(el => {
+    el.onclick = () => { S.education = el.dataset.edu; render(); };
+  });
+  document.querySelectorAll('[data-enroll]').forEach(el => {
+    el.onclick = () => { S.enrollment = el.dataset.enroll; render(); };
+  });
+  // 자기소개 글자수 카운터
+  const introEl = g('i-intro');
+  if (introEl) {
+    introEl.oninput = () => {
+      const cnt = introEl.value.length;
+      const counter = g('intro-count');
+      if (counter) {
+        counter.textContent = cnt + '/150';
+        counter.className = 'char-count' + (cnt > 150 ? ' over' : '');
+      }
+    };
+  }
+
+  // ── Step 3: 경험 chip ──
+  document.querySelectorAll('[data-exp]').forEach(el => {
+    el.onclick = () => {
+      saveInputs();
+      S.experience = el.dataset.exp;
+      if (S.experience === '무') S.exp_list = [{ event: "", role: "", duties: "" }];
+      render();
+    };
+  });
+  // 영어 chip
+  document.querySelectorAll('[data-eng]').forEach(el => {
+    el.onclick = () => { S.english = el.dataset.eng; render(); };
+  });
+  // 경험 추가
+  const btnAddExp = g('btn-add-exp');
+  if (btnAddExp) btnAddExp.onclick = () => {
+    saveInputs();
+    S.exp_list.push({ event: "", role: "", duties: "" });
+    render();
+  };
+  // 경험 삭제
+  document.querySelectorAll('[data-rmexp]').forEach(el => {
+    el.onclick = () => {
+      saveInputs();
+      S.exp_list.splice(parseInt(el.dataset.rmexp), 1);
+      render();
+    };
+  });
+
+  // ── Step 4: 희망 업무 체크박스 ──
+  document.querySelectorAll('[data-role]').forEach(el => {
+    el.onclick = () => {
+      const r = el.dataset.role;
+      const idx = S.roles.indexOf(r);
+      if (idx >= 0) {
+        S.roles.splice(idx, 1);
+      } else {
+        if (S.roles.length >= 3) { showToast('최대 3개까지 선택 가능합니다'); return; }
+        S.roles.push(r);
+      }
+      render();
+    };
+  });
+  // 참여 가능일 chip
+  document.querySelectorAll('[data-adate]').forEach(el => {
+    el.onclick = () => {
+      S.avail[el.dataset.adate] = el.dataset.atime;
+      render();
+    };
+  });
+
+  // ── Step 5: 동의 체크박스 ──
+  const consent = g('consent-toggle');
+  if (consent) consent.onclick = () => { S.privacy = !S.privacy; render(); };
+
+  // ── Step 5: 수정 버튼 ──
+  document.querySelectorAll('[data-goto]').forEach(el => {
+    el.onclick = () => { S.step = parseInt(el.dataset.goto); render(); };
+  });
+
+  // ── 전화번호 자동 포매팅 ──
+  const phoneEl = g('i-phone');
+  if (phoneEl) {
+    phoneEl.oninput = () => { phoneEl.value = formatPhone(phoneEl.value); };
+  }
+}
+
+// ============================================================
+// 제출
+// ============================================================
+async function submitApplication() {
+  showOverlay(true);
+
+  const payload = {
+    type: 'recruit',
+    timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+    name: S.name,
+    gender: S.gender,
+    birth: S.birth,
+    phone: S.phone,
+    email: S.email,
+    address: S.address,
+    education: S.education,
+    enrollment: S.enrollment,
+    major: S.major,
+    intro: S.intro,
+    experience: S.experience,
+    exp1: S.experience === '유' && S.exp_list[0] ? `${S.exp_list[0].event} / ${S.exp_list[0].role} / ${S.exp_list[0].duties}` : '',
+    exp2: S.experience === '유' && S.exp_list[1] ? `${S.exp_list[1].event} / ${S.exp_list[1].role} / ${S.exp_list[1].duties}` : '',
+    exp3: S.experience === '유' && S.exp_list[2] ? `${S.exp_list[2].event} / ${S.exp_list[2].role} / ${S.exp_list[2].duties}` : '',
+    english: S.english,
+    other_lang: S.other_lang,
+    roles: S.roles.join(', '),
+    avail_14: S.avail['5/14'],
+    avail_15: S.avail['5/15'],
+    avail_16: S.avail['5/16']
+  };
+
+  try {
+    await fetch(GAS, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    markSubmitted();
+    S.submitted = true;
+    showOverlay(false);
+    render();
+  } catch(e) {
+    showOverlay(false);
+    showToast('제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+  }
+}
+</script>
+</body>
+</html>
