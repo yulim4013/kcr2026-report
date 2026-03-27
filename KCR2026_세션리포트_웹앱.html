@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KCR 2026 세션 리포트</title>
+<style>
+  /* ── reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif;
+         background: #F2F2F7; color: #1C1C1E; min-height: 100vh; }
+
+  /* ── layout ── */
+  .phone { max-width: 430px; margin: 0 auto; background: #F2F2F7; min-height: 100vh; padding-bottom: 32px; }
+  .topbar { background: #fff; border-bottom: 0.5px solid rgba(0,0,0,0.1);
+            padding: 14px 16px; display: flex; align-items: center; gap: 10px;
+            position: sticky; top: 0; z-index: 10; }
+  .topbar-back { width: 32px; height: 32px; display: flex; align-items: center;
+                 justify-content: center; border: 0.5px solid #E5E5EA;
+                 border-radius: 8px; cursor: pointer; color: #8E8E93; font-size: 18px;
+                 background: #fff; }
+  .topbar-title { font-size: 15px; font-weight: 600; flex: 1; }
+  .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+           background: #E6F1FB; color: #185FA5; }
+
+  /* ── progress ── */
+  .steps { display: flex; gap: 5px; padding: 12px 16px 0; }
+  .step { flex: 1; height: 3px; border-radius: 2px; background: #E5E5EA; }
+  .step.done { background: #34C759; }
+  .step.active { background: #185FA5; }
+
+  /* ── content ── */
+  .content { padding: 12px 16px; }
+  .card { background: #fff; border-radius: 12px; border: 0.5px solid rgba(0,0,0,0.08);
+          padding: 14px 16px; margin-bottom: 10px; }
+  .card-label { font-size: 11px; font-weight: 600; color: #8E8E93;
+                letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* ── form elements ── */
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12px; color: #8E8E93; margin-bottom: 5px; }
+  input[type=text], input[type=number], input[type=time], select, textarea {
+    width: 100%; padding: 10px 12px; border: 0.5px solid #E5E5EA; border-radius: 8px;
+    font-size: 15px; font-family: inherit; background: #F9F9F9; color: #1C1C1E;
+    outline: none; transition: border-color .15s; -webkit-appearance: none; }
+  input:focus, select:focus, textarea:focus { border-color: #185FA5; background: #fff; }
+  textarea { resize: none; line-height: 1.5; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  /* ── chips ── */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 8px 14px; border: 0.5px solid #E5E5EA; border-radius: 20px;
+          font-size: 13px; color: #8E8E93; cursor: pointer; background: #fff;
+          transition: all .15s; white-space: nowrap; }
+  .chip.on { background: #185FA5; border-color: #185FA5; color: #fff; font-weight: 600; }
+
+  /* ── session list ── */
+  .sess { padding: 11px 13px; border: 0.5px solid #E5E5EA; border-radius: 8px;
+          cursor: pointer; transition: all .15s; background: #fff; margin-bottom: 6px;
+          display: flex; align-items: center; justify-content: space-between; }
+  .sess:last-child { margin-bottom: 0; }
+  .sess:hover { background: #F2F2F7; }
+  .sess.on { border-color: #185FA5; background: #E6F1FB; }
+  .sess.submitted { border-color: #34C759; background: #F0FFF4; }
+  .sess-info { flex: 1; min-width: 0; }
+  .sess-time { font-size: 11px; color: #8E8E93; font-weight: 600; margin-bottom: 2px; }
+  .sess.on .sess-time { color: #185FA5; }
+  .sess-name { font-size: 13px; color: #1C1C1E; line-height: 1.4; }
+  .sess.on .sess-name { color: #0C447C; }
+  .sess-check { font-size: 14px; color: #34C759; font-weight: 700; margin-left: 8px; flex-shrink: 0; }
+
+  /* ── 정상/이슈 toggle ── */
+  .toggle-row { margin-bottom: 12px; }
+  .toggle-row:last-child { margin-bottom: 0; }
+  .toggle-label { font-size: 13px; font-weight: 500; color: #1C1C1E; margin-bottom: 6px; }
+  .toggle-group { display: flex; gap: 6px; }
+  .toggle-btn { flex: 1; padding: 10px; border: 0.5px solid #E5E5EA; border-radius: 8px;
+                font-size: 14px; text-align: center; cursor: pointer; background: #fff;
+                transition: all .15s; font-weight: 500; font-family: inherit; }
+  .toggle-btn:hover { background: #F2F2F7; }
+  .toggle-btn.ok { border-color: #34C759; background: #D1F2E0; color: #1A7A42; font-weight: 600; }
+  .toggle-btn.issue { border-color: #FF9500; background: #FFF3CD; color: #856404; font-weight: 600; }
+
+  /* ── radio ── */
+  .radio-stack { display: flex; flex-direction: column; gap: 5px; }
+  .radio-item { display: flex; align-items: center; gap: 9px; padding: 10px 12px;
+                border: 0.5px solid #E5E5EA; border-radius: 8px; cursor: pointer;
+                font-size: 14px; color: #1C1C1E; transition: all .15s; background: #fff; }
+  .radio-item:hover { background: #F2F2F7; }
+  .radio-item.on { border-color: #185FA5; background: #E6F1FB; color: #0C447C; }
+  .radio-dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #C7C7CC;
+               flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .radio-item.on .radio-dot { border-color: #185FA5; background: #185FA5; }
+  .radio-item.on .radio-dot::after { content: ''; width: 6px; height: 6px;
+                                      border-radius: 50%; background: #fff; display: block; }
+  .sub-field { margin-top: 8px; padding: 10px 12px; background: #F9F9F9; border-radius: 8px; }
+  .sub-field label { font-size: 12px; color: #8E8E93; display: block; margin-bottom: 4px; }
+  .sub-field input, .sub-field textarea { background: #fff; }
+
+  /* ── buttons ── */
+  .btn-primary { width: 100%; padding: 14px; background: #185FA5; color: #fff;
+                 border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+                 cursor: pointer; margin-top: 4px; font-family: inherit; transition: background .15s; }
+  .btn-primary:hover { background: #0C447C; }
+  .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-edit { width: 100%; padding: 14px; background: #FFD60A; color: #1C1C1E;
+              border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+              cursor: pointer; margin-top: 4px; font-family: inherit; transition: background .15s; }
+  .btn-edit:hover { background: #F5C800; }
+  .btn-ghost { width: 100%; padding: 12px; background: #fff; color: #8E8E93;
+               border: 0.5px solid #E5E5EA; border-radius: 12px; font-size: 15px;
+               cursor: pointer; margin-top: 6px; font-family: inherit; }
+  .btn-ghost:hover { background: #F2F2F7; }
+
+  /* ── time error ── */
+  .time-error { color: #FF3B30; font-size: 12px; margin-top: 6px; font-weight: 500; }
+
+  /* ── success ── */
+  .success-wrap { text-align: center; padding: 28px 16px; }
+  .ok-circle { width: 60px; height: 60px; border-radius: 50%; background: #D1F2E0;
+               display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .submitted-row { display: flex; justify-content: space-between; align-items: center;
+                   padding: 9px 0; border-bottom: 0.5px solid #F2F2F7; font-size: 13px; cursor: pointer; }
+  .submitted-row:last-child { border-bottom: none; }
+  .tag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 10px; }
+  .tag-ok { background: #D1F2E0; color: #1A7A42; }
+  .tag-issue { background: #FFF3CD; color: #856404; }
+
+  /* ── loading overlay ── */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+             align-items: center; justify-content: center; z-index: 100; }
+  .overlay.show { display: flex; }
+  .spinner-box { background: #fff; border-radius: 16px; padding: 28px 32px;
+                 text-align: center; min-width: 160px; }
+  .spinner { width: 32px; height: 32px; border: 3px solid #E5E5EA;
+             border-top-color: #185FA5; border-radius: 50%;
+             animation: spin .7s linear infinite; margin: 0 auto 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-text { font-size: 14px; color: #8E8E93; }
+
+  /* ── error toast ── */
+  .toast { display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+           background: #FF3B30; color: #fff; padding: 10px 20px; border-radius: 20px;
+           font-size: 14px; font-weight: 600; z-index: 200; white-space: nowrap; }
+  .toast.show { display: block; }
+
+  /* ── setup screen ── */
+  .setup-info { background: #E6F1FB; border-radius: 10px; padding: 12px 14px;
+                font-size: 13px; color: #0C447C; line-height: 1.6; margin-bottom: 10px; }
+  .setup-info b { font-weight: 600; }
+  .empty-msg { text-align: center; padding: 24px; color: #8E8E93; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ── 설정 필요 안내 (GAS URL 미입력 시 표시) ── -->
+<div id="setup-screen" class="phone" style="display:none">
+  <div class="topbar">
+    <div class="topbar-title">KCR 2026 세션 리포트</div>
+  </div>
+  <div class="content" style="padding-top:24px">
+    <div class="card">
+      <div class="card-label">초기 설정 필요</div>
+      <div class="setup-info">
+        이 파일을 사용하려면 <b>Apps Script Web App URL</b>을 입력해야 합니다.<br><br>
+        설정 가이드의 <b>STEP 2</b>를 참고해서 URL을 발급받은 후,<br>
+        이 HTML 파일의 <code>GAS_URL</code> 변수에 붙여넣고 다시 열어주세요.
+      </div>
+      <div class="field">
+        <label>Apps Script Web App URL 임시 입력 (테스트용)</label>
+        <input type="text" id="temp-url" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      <button class="btn-primary" onclick="applyTempUrl()">적용하고 시작</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 메인 앱 ── -->
+<div id="main-app" class="phone" style="display:none">
+  <div id="app"></div>
+</div>
+
+<!-- ── 로딩 오버레이 ── -->
+<div class="overlay" id="overlay">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <div class="spinner-text">제출 중...</div>
+  </div>
+</div>
+
+<!-- ── 에러 토스트 ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// GAS Web App URL
+// ============================================================
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwlz1GJo6VqOsPLC0tzo_W4AjkzTMhPMPtReKagwJ2qgBS_BIk1cOO9OfGdpVYNbWsj/exec";
+
+// ============================================================
+// 프로그램 데이터 (KCR 2026 공식 프로그램 기준)
+// ============================================================
+const P = {
+  "Room 1 (3F)": {
+    "5/14": [
+      { t: "09:00–11:30", n: "Year in Review" },
+      { t: "11:40–12:00", n: "Opening Ceremony" },
+      { t: "12:00–13:00", n: "Luncheon Symposium 1" },
+      { t: "13:00–14:30", n: "Presidential Plenary Session" },
+      { t: "14:30–15:30", n: "Poster Viewing & Coffee Break / Poster Tour 1" },
+      { t: "15:30–17:00", n: "International Joint Symposium (KCR and APLAR member)" },
+      { t: "17:00–18:00", n: "Evening Symposium 1" }
+    ],
+    "5/15": [
+      { t: "08:00–09:00", n: "Breakfast Symposium 1" },
+      { t: "09:00–10:00", n: "Keynote Lecture 1" },
+      { t: "10:30–12:00", n: "International Symposium 1 — Mastering the Spondyloarthritis Spectrum" },
+      { t: "12:00–13:00", n: "Luncheon Symposium 4" },
+      { t: "13:00–14:30", n: "International Symposium 2 — KCR-GOUT/G-CAN Joint Symposium" },
+      { t: "14:30–15:30", n: "Poster Viewing & Coffee Break / Poster Tour 2" },
+      { t: "15:30–17:00", n: "International Symposium 3 — Contemporary Understanding and Innovative Treatments for Fibromyalgia" },
+      { t: "17:00–18:00", n: "General Assembly" }
+    ],
+    "5/16": [
+      { t: "08:00–09:00", n: "Breakfast Symposium 4" },
+      { t: "09:00–10:00", n: "Keynote Lecture 2" },
+      { t: "10:00–10:30", n: "Poster Viewing & Coffee Break / Poster Tour 3" },
+      { t: "10:30–12:00", n: "International Symposium 4 (KCR-JCR) — Translating Genetic Epidemiology into Clinical Rheumatology" },
+      { t: "12:00–13:00", n: "Luncheon Symposium 7" },
+      { t: "13:00–13:30", n: "Medical Humanities Session" },
+      { t: "13:30–15:00", n: "Free Paper Session 9 — Crystal Arthropathies and Miscellaneous Inflammatory Diseases" },
+      { t: "15:00–16:30", n: "Awards & Closing Ceremony" }
+    ]
+  },
+  "Room 2 (3F)": {
+    "5/14": [
+      { t: "12:00–13:00", n: "Luncheon Symposium 2" },
+      { t: "13:00–14:30", n: "Free Paper Session 1 — Systemic Lupus Erythematosus (SLE)" },
+      { t: "14:30–15:30", n: "Poster Viewing & Coffee Break / Poster Tour 1" },
+      { t: "15:30–17:00", n: "Free Paper Session 2 — SLE & Antiphospholipid Syndrome and Sjögren's Syndrome" },
+      { t: "17:00–18:00", n: "Evening Symposium 2" }
+    ],
+    "5/15": [
+      { t: "08:00–09:00", n: "Breakfast Symposium 2" },
+      { t: "10:30–12:00", n: "Free Paper Session 5 — Osteoarthritis and Pain in Rheumatic Diseases" },
+      { t: "12:00–13:00", n: "Luncheon Symposium 5" },
+      { t: "13:00–14:30", n: "Free Paper Session 6 — Rheumatoid Arthritis (I)" },
+      { t: "14:30–15:30", n: "Poster Viewing & Coffee Break / Poster Tour 2" },
+      { t: "15:30–17:00", n: "Free Paper Session 7 — Spondyloarthritis Including Psoriatic Arthritis (I)" }
+    ],
+    "5/16": [
+      { t: "08:00–09:00", n: "Breakfast Symposium 5" },
+      { t: "10:30–12:00", n: "Free Paper Session 8 — Rheumatoid Arthritis (II)" },
+      { t: "12:00–13:00", n: "Luncheon Symposium 8" },
+      { t: "13:00–15:00", n: "Poster Viewing" },
+      { t: "13:30–15:00", n: "Free Paper Session 11 — Epidemiology & Public Health" }
+    ]
+  },
+  "Room 3 (5F)": {
+    "5/14": [
+      { t: "12:00–13:00", n: "Luncheon Symposium 3" },
+      { t: "13:00–14:30", n: "Free Paper Session 3 — Systemic Sclerosis and Vasculitis & Behcet's Disease" },
+      { t: "14:30–15:30", n: "Poster Viewing & Coffee Break / Poster Tour 1" },
+      { t: "15:30–17:00", n: "Free Paper Session 4 — Myositis and Metabolic Bone Diseases" }
+    ],
+    "5/15": [
+      { t: "08:00–09:00", n: "Breakfast Symposium 3" },
+      { t: "10:30–12:00", n: "KCR-KSBMR Joint Symposium — Clinical Osteoimmunology in Practice" },
+      { t: "12:00–13:00", n: "Luncheon Symposium 6" },
+      { t: "13:00–14:30", n: "KCR-KCPCI Joint Symposium — Transition from Childhood to Adulthood" },
+      { t: "14:30–15:30", n: "Poster Viewing & Coffee Break / Poster Tour 2" },
+      { t: "15:30–17:00", n: "Health Insurance Committee Session" }
+    ],
+    "5/16": [
+      { t: "08:00–09:00", n: "Breakfast Symposium 6" },
+      { t: "10:30–12:00", n: "Free Paper Session 10 — Spondyloarthritis Including Psoriatic Arthritis (II)" },
+      { t: "12:00–13:00", n: "Luncheon Symposium 9" }
+    ]
+  }
+};
+
+const ROOMS = Object.keys(P);
+const DATES = ["5/14", "5/15", "5/16"];
+const DATE_KO = { "5/14": "5월 14일 (목)", "5/15": "5월 15일 (금)", "5/16": "5월 16일 (토)" };
+const ZONES = ["세션장", "등록 데스크", "프리뷰 데스크"];
+
+// ── 폼 초기값 ─────────────────────────────────────────────
+function emptySessionForm() {
+  return {
+    s_time:"", e_time:"", att_s:"", att_e:"",
+    sp1:"", sp1_d:"", sp2:"", sp2_d:"",
+    eq1:"", eq1_d:"", eq2:"", eq2_d:"",
+    eq3:"", eq3_d:"", eq4:"", eq4_d:"",
+    notes:""
+  };
+}
+function emptyRegForm() {
+  return { sys:"", sys_d:"", inquiry:"", inq_name:"", inq_d:"",
+           event:"", event_d:"", etc_d:"" };
+}
+function emptyPreviewForm() {
+  return { sys:"", sys_d:"", speaker:"", spk_name:"", spk_d:"",
+           tg:"", tg_d:"", etc_d:"" };
+}
+
+// ── 앱 상태 ───────────────────────────────────────────────
+let GAS = GAS_URL;
+let S = {
+  view: 'home',
+  zone: "",
+  room: "",
+  staff: "",
+  date: "",
+  sessIdx: null,
+  sf: emptySessionForm(),
+  rf: emptyRegForm(),
+  pf: emptyPreviewForm(),
+  log: [],
+  submitted: {},
+  editing: false
+};
+
+// ── localStorage ──────────────────────────────────────────
+function todayKey() {
+  const d = new Date();
+  return 'kcr2026_' + d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+
+function saveLocal() {
+  const key = todayKey();
+  localStorage.setItem(key, JSON.stringify({
+    staff: S.staff, log: S.log, submitted: S.submitted
+  }));
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith('kcr2026_') && k !== key) localStorage.removeItem(k);
+  });
+}
+
+function loadLocal() {
+  const key = todayKey();
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith('kcr2026_') && k !== key) localStorage.removeItem(k);
+  });
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const d = JSON.parse(raw);
+      S.staff = d.staff || "";
+      S.log = d.log || [];
+      S.submitted = d.submitted || {};
+    }
+  } catch(e) {}
+}
+
+// ── 초기화 ────────────────────────────────────────────────
+window.onload = () => {
+  if (!GAS) {
+    document.getElementById('setup-screen').style.display = 'block';
+  } else {
+    loadLocal();
+    document.getElementById('main-app').style.display = 'block';
+    render();
+  }
+};
+
+function applyTempUrl() {
+  const url = document.getElementById('temp-url').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    showToast('올바른 Apps Script URL을 입력해주세요');
+    return;
+  }
+  GAS = url;
+  document.getElementById('setup-screen').style.display = 'none';
+  loadLocal();
+  document.getElementById('main-app').style.display = 'block';
+  render();
+}
+
+// ── 렌더링 ────────────────────────────────────────────────
+function render() {
+  document.getElementById('app').innerHTML = VIEWS[S.view]();
+  bindEvents();
+}
+
+// ── 헬퍼: 프로그레스 바 ───────────────────────────────────
+function stepsHTML(total, current) {
+  return '<div class="steps">' + Array.from({length:total},(_,i)=>{
+    const idx = i+1;
+    return '<div class="step '+(idx<current?'done':idx===current?'active':'')+'"></div>';
+  }).join('') + '</div>';
+}
+
+// ── 헬퍼: 정상/이슈 토글 ─────────────────────────────────
+function tgl(key, label, f, fieldHTML) {
+  return '<div class="toggle-row">' +
+    (label ? '<div class="toggle-label">'+label+'</div>' : '') +
+    '<div class="toggle-group">' +
+      '<div class="toggle-btn '+(f[key]==='정상'?'ok':'')+'" data-tkey="'+key+'" data-tval="정상">정상</div>' +
+      '<div class="toggle-btn '+(f[key]==='이슈'?'issue':'')+'" data-tkey="'+key+'" data-tval="이슈">이슈</div>' +
+    '</div>' +
+    (f[key]==='이슈' ? '<div class="sub-field">'+fieldHTML+'</div>' : '') +
+  '</div>';
+}
+
+// ── 뷰 정의 ───────────────────────────────────────────────
+const VIEWS = {
+  // ─── 홈 화면 ───
+  home: () => {
+    const totalSteps = S.zone === '세션장' ? 3 : (S.zone ? 2 : 2);
+    return `
+    <div class="topbar">
+      <div class="topbar-title">세션 리포트</div>
+      <span class="badge">KCR 2026</span>
+    </div>
+    ${stepsHTML(totalSteps, 1)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">기본 정보</div>
+        <div class="field">
+          <label>운영요원 이름</label>
+          <input id="i-staff" type="text" placeholder="이름 입력" value="${S.staff}">
+        </div>
+        <div class="field">
+          <label>운영 구역</label>
+          <div class="chip-group">
+            ${ZONES.map(z=>'<div class="chip '+(S.zone===z?'on':'')+'" data-zone="'+z+'">'+z+'</div>').join('')}
+          </div>
+        </div>
+        ${S.zone === '세션장' ? `
+        <div class="field">
+          <label>담당 룸</label>
+          <select id="i-room">
+            <option value="">룸 선택</option>
+            ${ROOMS.map(rm=>'<option value="'+rm+'" '+(S.room===rm?'selected':'')+'>'+rm+'</option>').join('')}
+          </select>
+        </div>` : ''}
+        <div class="field">
+          <label>날짜</label>
+          <div class="chip-group">
+            ${DATES.map(d=>'<div class="chip '+(S.date===d?'on':'')+'" data-date="'+d+'">'+DATE_KO[d]+'</div>').join('')}
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-next1">다음 →</button>
+    </div>`;
+  },
+
+  // ─── 세션 선택 (세션장) ───
+  sess_list: () => {
+    const sessions = (P[S.room] && P[S.room][S.date]) || [];
+    const list = sessions.length
+      ? sessions.map((s,i) => {
+          const subKey = S.room+'|'+S.date+'|'+i;
+          const done = !!S.submitted[subKey];
+          return `
+          <div class="sess ${S.sessIdx===i&&!done?'on':''} ${done?'submitted':''}" data-si="${i}">
+            <div class="sess-info">
+              <div class="sess-time">${s.t}</div>
+              <div class="sess-name">${s.n}</div>
+            </div>
+            ${done ? '<div class="sess-check">✓</div>' : ''}
+          </div>`;
+        }).join('')
+      : '<div class="empty-msg">'+S.room+'의 '+S.date+' 세션이 없습니다</div>';
+    return `
+    <div class="topbar">
+      <div class="topbar-back" id="btn-back1">‹</div>
+      <div class="topbar-title">${S.room}</div>
+      <span class="badge">${S.date}</span>
+    </div>
+    ${stepsHTML(3, 2)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">세션 선택</div>
+        <div class="session-list">${list}</div>
+      </div>
+      <button class="btn-primary" id="btn-next2">리포트 작성 →</button>
+    </div>`;
+  },
+
+  // ─── 세션 폼 (세션장) ───
+  sess_form: () => {
+    const sess = P[S.room][S.date][S.sessIdx];
+    const f = S.sf;
+    const timeErr = f.s_time && f.e_time && f.e_time < f.s_time;
+    return `
+    <div class="topbar">
+      <div class="topbar-back" id="btn-back2">‹</div>
+      <div class="topbar-title" style="font-size:13px;line-height:1.35">${sess.n.length>26?sess.n.slice(0,26)+'…':sess.n}</div>
+      <span class="badge">${sess.t.split('–')[0]}</span>
+    </div>
+    ${stepsHTML(3, 3)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">세션 시작</div>
+        <div class="two-col">
+          <div class="field"><label>시작 시각</label><input type="time" id="i-st" value="${f.s_time}"></div>
+          <div class="field"><label>참석 인원 <span style="color:#FF3B30">*</span></label><input type="number" id="i-as" placeholder="명 (필수)" value="${f.att_s}" min="0"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">연자/좌장 현황</div>
+        ${tgl('sp1', '도착', f, '<input type="text" id="i-sp1d" placeholder="이슈 내용" value="'+(f.sp1_d||'')+'">')}
+        ${tgl('sp2', '세팅', f, '<input type="text" id="i-sp2d" placeholder="이슈 내용" value="'+(f.sp2_d||'')+'">')}
+      </div>
+      <div class="card">
+        <div class="card-label">장비 및 환경</div>
+        ${tgl('eq1', '마이크', f, '<input type="text" id="i-eq1d" placeholder="이슈 내용" value="'+(f.eq1_d||'')+'">')}
+        ${tgl('eq2', '조명/스크린', f, '<input type="text" id="i-eq2d" placeholder="이슈 내용" value="'+(f.eq2_d||'')+'">')}
+        ${tgl('eq3', 'AI번역', f, '<input type="text" id="i-eq3d" placeholder="이슈 내용" value="'+(f.eq3_d||'')+'">')}
+        ${tgl('eq4', '실내온도', f, '<input type="text" id="i-eq4d" placeholder="이슈 내용" value="'+(f.eq4_d||'')+'">')}
+      </div>
+      <div class="card">
+        <div class="card-label">특이사항</div>
+        <textarea id="i-notes" rows="3" placeholder="기타 현장 특이사항 자유 기재">${f.notes}</textarea>
+      </div>
+      <div class="card">
+        <div class="card-label">세션 종료</div>
+        <div class="two-col">
+          <div class="field"><label>종료 시각</label><input type="time" id="i-et" value="${f.e_time}" ${f.s_time?'min="'+f.s_time+'"':''}></div>
+          <div class="field"><label>참석 인원 <span style="color:#FF3B30">*</span></label><input type="number" id="i-ae" placeholder="명 (필수)" value="${f.att_e}" min="0"></div>
+        </div>
+        ${timeErr ? '<div class="time-error">종료 시간이 시작 시간보다 빠릅니다</div>' : ''}
+      </div>
+      ${S.editing
+        ? '<button class="btn-edit" id="btn-submit">수정하기</button>'
+        : '<button class="btn-primary" id="btn-submit">제출하기</button>'}
+      <button class="btn-ghost" id="btn-back2b">이전으로</button>
+    </div>`;
+  },
+
+  // ─── 등록 데스크 폼 ───
+  reg_form: () => {
+    const f = S.rf;
+    return `
+    <div class="topbar">
+      <div class="topbar-back" id="btn-back-desk">‹</div>
+      <div class="topbar-title">등록 데스크</div>
+      <span class="badge">${S.date}</span>
+    </div>
+    ${stepsHTML(2, 2)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">시스템 이슈</div>
+        ${tgl('sys', '', f, '<textarea id="i-sys-d" rows="2" placeholder="이슈 내용">'+(f.sys_d||'')+'</textarea>')}
+      </div>
+      <div class="card">
+        <div class="card-label">참가자 문의</div>
+        ${tgl('inquiry', '', f,
+          '<label>이름</label>' +
+          '<input type="text" id="i-inq-name" placeholder="참가자 이름" value="'+(f.inq_name||'')+'" style="margin-bottom:6px">' +
+          '<label>내용</label>' +
+          '<textarea id="i-inq-d" rows="2" placeholder="문의 내용">'+(f.inq_d||'')+'</textarea>'
+        )}
+      </div>
+      <div class="card">
+        <div class="card-label">이벤트</div>
+        ${tgl('event', '', f, '<textarea id="i-event-d" rows="2" placeholder="이슈 내용">'+(f.event_d||'')+'</textarea>')}
+      </div>
+      <div class="card">
+        <div class="card-label">기타</div>
+        <textarea id="i-etc-d" rows="2" placeholder="기타 내용">${f.etc_d||''}</textarea>
+      </div>
+      ${S.editing
+        ? '<button class="btn-edit" id="btn-submit-desk">수정하기</button>'
+        : '<button class="btn-primary" id="btn-submit-desk">제출하기</button>'}
+      <button class="btn-ghost" id="btn-back-desk2">이전으로</button>
+    </div>`;
+  },
+
+  // ─── 프리뷰 데스크 폼 ───
+  prev_form: () => {
+    const f = S.pf;
+    return `
+    <div class="topbar">
+      <div class="topbar-back" id="btn-back-desk">‹</div>
+      <div class="topbar-title">프리뷰 데스크</div>
+      <span class="badge">${S.date}</span>
+    </div>
+    ${stepsHTML(2, 2)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">시스템 이슈</div>
+        ${tgl('sys', '', f, '<textarea id="i-sys-d" rows="2" placeholder="이슈 내용">'+(f.sys_d||'')+'</textarea>')}
+      </div>
+      <div class="card">
+        <div class="card-label">연자 비고</div>
+        ${tgl('speaker', '', f,
+          '<label>이름</label>' +
+          '<input type="text" id="i-spk-name" placeholder="연자 이름" value="'+(f.spk_name||'')+'" style="margin-bottom:6px">' +
+          '<label>내용</label>' +
+          '<textarea id="i-spk-d" rows="2" placeholder="비고 내용">'+(f.spk_d||'')+'</textarea>'
+        )}
+      </div>
+      <div class="card">
+        <div class="card-label">연자료 및 TG 관련 이슈</div>
+        ${tgl('tg', '', f, '<textarea id="i-tg-d" rows="2" placeholder="이슈 내용">'+(f.tg_d||'')+'</textarea>')}
+      </div>
+      <div class="card">
+        <div class="card-label">기타</div>
+        <textarea id="i-etc-d" rows="2" placeholder="기타 내용">${f.etc_d||''}</textarea>
+      </div>
+      ${S.editing
+        ? '<button class="btn-edit" id="btn-submit-desk">수정하기</button>'
+        : '<button class="btn-primary" id="btn-submit-desk">제출하기</button>'}
+      <button class="btn-ghost" id="btn-back-desk2">이전으로</button>
+    </div>`;
+  },
+
+  // ─── 제출 완료 ───
+  success: () => {
+    const items = S.log.map((l, idx) => `
+      <div class="submitted-row" data-logidx="${idx}">
+        <div>
+          <div style="font-size:11px;color:#8E8E93;margin-bottom:2px">${l.date} · ${l.zone}${l.room ? ' · '+l.room : ''}</div>
+          <div style="font-size:13px">${(l.label||'').length>30 ? l.label.slice(0,30)+'…' : (l.label||'')}</div>
+        </div>
+        <span class="tag ${l.issue?'tag-issue':'tag-ok'}">${l.issue?'이슈':'정상'}</span>
+      </div>`).join('');
+    return `
+    <div class="topbar">
+      <div class="topbar-title">제출 완료</div>
+      <span class="badge">KCR 2026</span>
+    </div>
+    <div class="content">
+      <div class="card success-wrap">
+        <div class="ok-circle">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M5 13l4 4L19 7" stroke="#1A7A42" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:6px">리포트 제출됨</div>
+        <div style="font-size:13px;color:#8E8E93;margin-bottom:20px">${S.staff} · ${S.zone}${S.room?' · '+S.room:''} · ${S.date}</div>
+        ${S.log.length ? `
+          <div style="text-align:left;width:100%">
+            <div style="font-size:11px;color:#8E8E93;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">오늘 제출 (${S.log.length}건)</div>
+            ${items}
+          </div>` : ''}
+      </div>
+      <button class="btn-primary" id="btn-next-sess">다음 작성</button>
+      <button class="btn-ghost" id="btn-new-day">새 날짜 / 구역 선택</button>
+    </div>`;
+  }
+};
+
+// ── 이벤트 바인딩 ─────────────────────────────────────────
+function bindEvents() {
+  const g = id => document.getElementById(id);
+
+  // 구역 칩
+  document.querySelectorAll('[data-zone]').forEach(el =>
+    el.addEventListener('click', () => { S.zone = el.dataset.zone; S.room = ''; render(); }));
+
+  // 날짜 칩
+  document.querySelectorAll('[data-date]').forEach(el =>
+    el.addEventListener('click', () => { S.date = el.dataset.date; render(); }));
+
+  // 세션 선택
+  document.querySelectorAll('[data-si]').forEach(el =>
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.si);
+      const subKey = S.room+'|'+S.date+'|'+idx;
+      if (S.submitted[subKey]) {
+        S.sessIdx = idx;
+        S.sf = JSON.parse(JSON.stringify(S.submitted[subKey]));
+        S.editing = true;
+        S.view = 'sess_form';
+        render();
+      } else {
+        S.sessIdx = idx;
+        render();
+      }
+    }));
+
+  // 정상/이슈 토글
+  document.querySelectorAll('[data-tkey]').forEach(el =>
+    el.addEventListener('click', () => {
+      saveCurrentForm();
+      const f = getCurrentForm();
+      f[el.dataset.tkey] = el.dataset.tval;
+      render();
+    }));
+
+  // 라디오 (시간초과)
+  document.querySelectorAll('[data-key]').forEach(el =>
+    el.addEventListener('click', () => {
+      saveCurrentForm();
+      S.sf[el.dataset.key] = el.dataset.val;
+      render();
+    }));
+
+  // 룸 선택
+  if (g('i-room')) g('i-room').addEventListener('change', e => { S.room = e.target.value; S.sessIdx = null; });
+
+  // 이름
+  if (g('i-staff')) g('i-staff').addEventListener('input', e => { S.staff = e.target.value; });
+
+  // 홈 → 다음
+  if (g('btn-next1')) g('btn-next1').addEventListener('click', () => {
+    S.staff = (g('i-staff') || { value: S.staff }).value.trim();
+    if (g('i-room')) S.room = g('i-room').value;
+    if (!S.staff) { showToast('이름을 입력해주세요'); return; }
+    if (!S.zone)  { showToast('운영 구역을 선택해주세요'); return; }
+    if (!S.date)  { showToast('날짜를 선택해주세요'); return; }
+
+    if (S.zone === '세션장') {
+      if (!S.room) { showToast('담당 룸을 선택해주세요'); return; }
+      S.sessIdx = null;
+      S.view = 'sess_list';
+    } else if (S.zone === '등록 데스크') {
+      const dk = '등록 데스크|'+S.date;
+      if (S.submitted[dk]) {
+        S.rf = JSON.parse(JSON.stringify(S.submitted[dk]));
+        S.editing = true;
+      } else {
+        S.rf = emptyRegForm();
+        S.editing = false;
+      }
+      S.view = 'reg_form';
+    } else if (S.zone === '프리뷰 데스크') {
+      const dk = '프리뷰 데스크|'+S.date;
+      if (S.submitted[dk]) {
+        S.pf = JSON.parse(JSON.stringify(S.submitted[dk]));
+        S.editing = true;
+      } else {
+        S.pf = emptyPreviewForm();
+        S.editing = false;
+      }
+      S.view = 'prev_form';
+    }
+    render();
+  });
+
+  // 세션 목록 → 리포트 작성
+  if (g('btn-next2')) g('btn-next2').addEventListener('click', () => {
+    if (S.sessIdx === null) { showToast('세션을 선택해주세요'); return; }
+    const subKey = S.room+'|'+S.date+'|'+S.sessIdx;
+    if (!S.submitted[subKey]) {
+      S.sf = emptySessionForm();
+      S.editing = false;
+    }
+    S.view = 'sess_form';
+    render();
+  });
+
+  // 뒤로가기
+  if (g('btn-back1'))    g('btn-back1').addEventListener('click', () => { S.view = 'home'; render(); });
+  if (g('btn-back2'))    g('btn-back2').addEventListener('click', () => { saveCurrentForm(); S.view = 'sess_list'; render(); });
+  if (g('btn-back2b'))   g('btn-back2b').addEventListener('click', () => { saveCurrentForm(); S.view = 'sess_list'; render(); });
+  if (g('btn-back-desk'))  g('btn-back-desk').addEventListener('click', () => { S.view = 'home'; render(); });
+  if (g('btn-back-desk2')) g('btn-back-desk2').addEventListener('click', () => { S.view = 'home'; render(); });
+
+  // 제출
+  if (g('btn-submit'))      g('btn-submit').addEventListener('click', submitSession);
+  if (g('btn-submit-desk')) g('btn-submit-desk').addEventListener('click', submitDesk);
+
+  // 완료 후 다음
+  if (g('btn-next-sess')) g('btn-next-sess').addEventListener('click', () => {
+    if (S.zone === '세션장') {
+      S.sessIdx = null;
+      S.sf = emptySessionForm();
+      S.editing = false;
+      S.view = 'sess_list';
+    } else {
+      S.view = 'home';
+    }
+    render();
+  });
+
+  if (g('btn-new-day')) g('btn-new-day').addEventListener('click', () => {
+    S.date = ""; S.sessIdx = null;
+    S.sf = emptySessionForm();
+    S.rf = emptyRegForm();
+    S.pf = emptyPreviewForm();
+    S.editing = false;
+    S.view = 'home';
+    render();
+  });
+
+  // 완료 목록 클릭 → 수정 모드
+  document.querySelectorAll('[data-logidx]').forEach(el =>
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.logidx);
+      const entry = S.log[idx];
+      if (!entry) return;
+      S.zone = entry.zone;
+      S.date = entry.date;
+      S.editing = true;
+      if (entry.zone === '세션장') {
+        S.room = entry.room;
+        S.sessIdx = entry.sessIdx;
+        const subKey = S.room+'|'+S.date+'|'+S.sessIdx;
+        if (S.submitted[subKey]) S.sf = JSON.parse(JSON.stringify(S.submitted[subKey]));
+        S.view = 'sess_form';
+      } else if (entry.zone === '등록 데스크') {
+        const dk = '등록 데스크|'+S.date;
+        if (S.submitted[dk]) S.rf = JSON.parse(JSON.stringify(S.submitted[dk]));
+        S.view = 'reg_form';
+      } else if (entry.zone === '프리뷰 데스크') {
+        const dk = '프리뷰 데스크|'+S.date;
+        if (S.submitted[dk]) S.pf = JSON.parse(JSON.stringify(S.submitted[dk]));
+        S.view = 'prev_form';
+      }
+      render();
+    }));
+}
+
+// ── 현재 폼 판별 ─────────────────────────────────────────
+function getCurrentForm() {
+  if (S.view === 'sess_form') return S.sf;
+  if (S.view === 'reg_form')  return S.rf;
+  if (S.view === 'prev_form') return S.pf;
+  return S.sf;
+}
+
+// ── 폼 입력값 저장 ───────────────────────────────────────
+function saveCurrentForm() {
+  const g = id => document.getElementById(id);
+  if (S.view === 'sess_form') {
+    const f = S.sf;
+    if (g('i-st'))    f.s_time = g('i-st').value;
+    if (g('i-et'))    f.e_time = g('i-et').value;
+    if (g('i-as'))    f.att_s  = g('i-as').value;
+    if (g('i-ae'))    f.att_e  = g('i-ae').value;
+    if (g('i-sp1d'))  f.sp1_d  = g('i-sp1d').value;
+    if (g('i-sp2d'))  f.sp2_d  = g('i-sp2d').value;
+    if (g('i-eq1d'))  f.eq1_d  = g('i-eq1d').value;
+    if (g('i-eq2d'))  f.eq2_d  = g('i-eq2d').value;
+    if (g('i-eq3d'))  f.eq3_d  = g('i-eq3d').value;
+    if (g('i-eq4d'))  f.eq4_d  = g('i-eq4d').value;
+    if (g('i-notes')) f.notes  = g('i-notes').value;
+  } else if (S.view === 'reg_form') {
+    const f = S.rf;
+    if (g('i-sys-d'))    f.sys_d    = g('i-sys-d').value;
+    if (g('i-inq-name')) f.inq_name = g('i-inq-name').value;
+    if (g('i-inq-d'))    f.inq_d    = g('i-inq-d').value;
+    if (g('i-event-d'))  f.event_d  = g('i-event-d').value;
+    if (g('i-etc-d'))    f.etc_d    = g('i-etc-d').value;
+  } else if (S.view === 'prev_form') {
+    const f = S.pf;
+    if (g('i-sys-d'))    f.sys_d    = g('i-sys-d').value;
+    if (g('i-spk-name')) f.spk_name = g('i-spk-name').value;
+    if (g('i-spk-d'))    f.spk_d    = g('i-spk-d').value;
+    if (g('i-tg-d'))     f.tg_d     = g('i-tg-d').value;
+    if (g('i-etc-d'))    f.etc_d    = g('i-etc-d').value;
+  }
+}
+
+// ── 세션 제출 ─────────────────────────────────────────────
+async function submitSession() {
+  saveCurrentForm();
+  const sess = P[S.room][S.date][S.sessIdx];
+  const f = S.sf;
+
+  if (f.att_s === '') { showToast('세션 시작 시 참석 인원을 입력해주세요'); return; }
+  if (f.att_e === '') { showToast('세션 종료 시 참석 인원을 입력해주세요'); return; }
+  if (f.s_time && f.e_time && f.e_time < f.s_time) {
+    showToast('종료 시간이 시작 시간보다 빠릅니다');
+    return;
+  }
+
+  const hasIssue = f.sp1==='이슈' || f.sp2==='이슈' ||
+                   f.eq1==='이슈' || f.eq2==='이슈' || f.eq3==='이슈' || f.eq4==='이슈';
+
+  const payload = {
+    timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+    staff: S.staff, zone: '세션장', room: S.room, date: S.date,
+    session: sess.n, sess_time: sess.t,
+    s_time: f.s_time, e_time: f.e_time,
+    att_s: f.att_s, att_e: f.att_e,
+    sp1: f.sp1, sp1_d: f.sp1_d, sp2: f.sp2, sp2_d: f.sp2_d,
+    eq1: f.eq1, eq1_d: f.eq1_d, eq2: f.eq2, eq2_d: f.eq2_d,
+    eq3: f.eq3, eq3_d: f.eq3_d, eq4: f.eq4, eq4_d: f.eq4_d,
+    notes: f.notes,
+    edit: S.editing
+  };
+
+  showOverlay(true);
+  try {
+    await fetch(GAS, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+
+    const subKey = S.room+'|'+S.date+'|'+S.sessIdx;
+    S.submitted[subKey] = JSON.parse(JSON.stringify(f));
+
+    if (S.editing) {
+      const ei = S.log.findIndex(l =>
+        l.zone==='세션장' && l.room===S.room && l.date===S.date && l.sessIdx===S.sessIdx);
+      if (ei >= 0) S.log[ei].issue = hasIssue;
+    } else {
+      S.log.push({ zone:'세션장', date:S.date, room:S.room,
+                    label:sess.n, sessIdx:S.sessIdx, issue:hasIssue });
+    }
+
+    saveLocal();
+    S.editing = false;
+    S.view = 'success';
+    render();
+  } catch (err) {
+    showToast('제출 실패. 네트워크를 확인해주세요.');
+    console.error(err);
+  } finally {
+    showOverlay(false);
+  }
+}
+
+// ── 데스크 제출 ───────────────────────────────────────────
+async function submitDesk() {
+  saveCurrentForm();
+  const isReg = S.zone === '등록 데스크';
+  const f = isReg ? S.rf : S.pf;
+  let hasIssue, payload;
+
+  if (isReg) {
+    hasIssue = f.sys==='이슈' || f.inquiry==='이슈' || f.event==='이슈';
+    payload = {
+      timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+      staff: S.staff, zone: '등록 데스크', date: S.date,
+      sys: f.sys, sys_d: f.sys_d,
+      inquiry: f.inquiry, inq_name: f.inq_name, inq_d: f.inq_d,
+      event: f.event, event_d: f.event_d,
+      etc_d: f.etc_d,
+      edit: S.editing
+    };
+  } else {
+    hasIssue = f.sys==='이슈' || f.speaker==='이슈' || f.tg==='이슈';
+    payload = {
+      timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+      staff: S.staff, zone: '프리뷰 데스크', date: S.date,
+      sys: f.sys, sys_d: f.sys_d,
+      speaker: f.speaker, spk_name: f.spk_name, spk_d: f.spk_d,
+      tg: f.tg, tg_d: f.tg_d,
+      etc_d: f.etc_d,
+      edit: S.editing
+    };
+  }
+
+  showOverlay(true);
+  try {
+    await fetch(GAS, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+
+    const dk = S.zone+'|'+S.date;
+    S.submitted[dk] = JSON.parse(JSON.stringify(f));
+
+    if (S.editing) {
+      const ei = S.log.findIndex(l => l.zone===S.zone && l.date===S.date);
+      if (ei >= 0) S.log[ei].issue = hasIssue;
+    } else {
+      S.log.push({ zone:S.zone, date:S.date, label:S.zone, issue:hasIssue });
+    }
+
+    saveLocal();
+    S.editing = false;
+    S.view = 'success';
+    render();
+  } catch (err) {
+    showToast('제출 실패. 네트워크를 확인해주세요.');
+    console.error(err);
+  } finally {
+    showOverlay(false);
+  }
+}
+
+// ── 유틸 ──────────────────────────────────────────────────
+function showOverlay(on) {
+  document.getElementById('overlay').classList.toggle('show', on);
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
