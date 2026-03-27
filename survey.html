@@ -41,8 +41,8 @@
   /* ── form elements ── */
   .field { margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
-  .field label { display: block; font-size: 14px; color: #48484A; margin-bottom: 5px; }
-  .field label .req { color: #FF3B30; }
+  .field label { display: block; font-size: 15px; color: #3A3A3C; margin-bottom: 5px; font-weight: 500; }
+  .req { color: #FF3B30; }
   input[type=text], input[type=email], input[type=tel], textarea {
     width: 100%; padding: 10px 12px; border: 0.5px solid #E5E5EA; border-radius: 8px;
     font-size: 15px; font-family: inherit; background: #F9F9F9; color: #1C1C1E;
@@ -64,7 +64,7 @@
                 border: 0.5px solid #E5E5EA; border-radius: 8px; cursor: pointer;
                 font-size: 14px; color: #8E8E93; transition: all .15s; background: #fff; }
   .check-item:hover { background: #F2F2F7; }
-  .check-item.on { border-color: #185FA5; background: #E6F1FB; color: #185FA5; }
+  .check-item.on { border-color: #185FA5; background: #E6F1FB; color: #3A3A3C; }
   .check-box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid #C7C7CC;
                flex-shrink: 0; display: flex; align-items: center; justify-content: center;
                font-size: 12px; color: transparent; transition: all .15s; }
@@ -135,7 +135,7 @@
   /* ── sub-item likert rows (matrix) ── */
   .subitem-row { padding: 10px 0; border-bottom: 0.5px solid #F2F2F7; }
   .subitem-row:last-child { border-bottom: none; }
-  .subitem-label { font-size: 13px; color: #48484A; font-weight: 500; margin-bottom: 6px; }
+  .subitem-label { font-size: 13px; color: #3A3A3C; font-weight: 500; margin-bottom: 6px; }
   .subitem-row .likert-group { gap: 4px; }
   .subitem-row .likert-item { width: 40px; height: 40px; font-size: 14px; }
 
@@ -366,7 +366,7 @@ const T = {
   // Prize
   prize_label: { ko: '경품 추첨 안내', en: 'Prize Information' },
   prize_info_domestic: { ko: '행사 종료 후 스타벅스 기프트카드를 문자로 발송해 드리오니, 아래의 정보를 입력해 주시기 바랍니다.', en: 'A Starbucks gift card will be sent via SMS after the event. Please enter your information below.' },
-  prize_info_foreign: { ko: '등록 데스크에서 류마냥 키링을 수령해 주세요.', en: 'Please visit the Registration Desk to receive your Rhumanyang (KCR Keyring) keyring.' },
+  prize_info_foreign: { ko: '등록 데스크에서 류마냥 키링을 수령해 주세요.', en: 'Please visit the Registration Desk to receive your Rhumanyang (KCR Mascot) keyring.' },
   prize_name: { ko: '성함', en: 'Name' },
   prize_name_ph: { ko: '성함을 입력해주세요', en: 'Enter your name' },
   prize_phone: { ko: '휴대폰 번호', en: 'Phone number' },
@@ -397,13 +397,15 @@ const T = {
   v_q24:   { ko: '내년 참석 의향을 선택해주세요', en: 'Please select your attendance intention' },
   v_q25:   { ko: '전반적 만족도를 선택해주세요', en: 'Please rate overall satisfaction' },
   v_q26:   { ko: '추천 의향을 선택해주세요', en: 'Please rate your recommendation intention' },
+  v_prize_name:  { ko: '성함을 입력해주세요', en: 'Please enter your name' },
+  v_prize_phone: { ko: '휴대폰 번호를 입력해주세요', en: 'Please enter your phone number' },
   v_privacy: { ko: '개인정보 수집에 동의해주세요', en: 'Please agree to the privacy policy' },
 
   // Success
   success_title: { ko: '설문이 제출되었습니다', en: 'Survey submitted successfully' },
   success_msg:   { ko: '귀한 의견 감사합니다. 응답이 정상적으로 기록되었습니다.', en: 'Thank you for your valuable feedback. Your response has been recorded.' },
   success_prize_domestic: { ko: '행사 종료 후 문자로 스타벅스 기프트카드를 발송해 드립니다.', en: 'Your Starbucks gift card will be sent via SMS after the event ends.' },
-  success_prize_foreign:  { ko: '등록 데스크에서 류마냥 키링을 수령해주세요!', en: 'Please collect your Rhumanyang (KCR Keyring) keyring at the Registration Desk!' },
+  success_prize_foreign:  { ko: '등록 데스크에서 류마냥 키링을 수령해주세요!', en: 'Please collect your Rhumanyang (KCR Mascot) keyring at the Registration Desk!' },
   btn_new: { ko: '새 설문 작성', en: 'New Survey' },
 
   submit_error: { ko: '제출 중 오류가 발생했습니다', en: 'An error occurred during submission' }
@@ -582,6 +584,8 @@ function validate(step) {
       if (!S.q24) { showToast(t('v_q24')); return false; }
       if (!S.q25) { showToast(t('v_q25')); return false; }
       if (!S.q26) { showToast(t('v_q26')); return false; }
+      if (!S.prize_name.trim()) { showToast(t('v_prize_name')); return false; }
+      if (S.respondent === 'domestic' && !S.prize_phone.trim()) { showToast(t('v_prize_phone')); return false; }
       if (!S.privacy) { showToast(t('v_privacy')); return false; }
       return true;
   }
@@ -599,7 +603,7 @@ const VIEWS = {
     <div class="kv-wrap"><img src="kv-header.png" alt="KCR 2026"></div>
     <div class="content">
       <div class="card">
-        <div class="card-label">${t('start_title')}</div>
+        <div class="card-label">Please select your type</div>
         <div class="type-cards">
           <div class="type-card ${S.respondent==='domestic'?'on':''}" data-resp="domestic">
             <div class="icon">🇰🇷</div>
@@ -611,7 +615,7 @@ const VIEWS = {
           </div>
         </div>
       </div>
-      <button class="btn-primary" id="btn-next">${t('btn_start')}</button>
+      <button class="btn-primary" id="btn-next">Start</button>
     </div>
   `,
 
@@ -842,19 +846,19 @@ const VIEWS = {
           <img src="류마냥-키링-2.png" alt="류마냥 키링" style="flex:1;width:50%;border-radius:8px;object-fit:cover;">
         </div>` : ''}
         <div class="field">
-          <label>${t('prize_name')}</label>
+          <label>${t('prize_name')} <span class="req">*</span></label>
           <input id="i-prize-name" type="text" placeholder="${t('prize_name_ph')}" value="${esc(S.prize_name)}">
         </div>
         ${isDomestic ? `
         <div class="field">
-          <label>${t('prize_phone')}</label>
+          <label>${t('prize_phone')} <span class="req">*</span></label>
           <input id="i-prize-phone" type="tel" placeholder="${t('prize_phone_ph')}" value="${esc(S.prize_phone)}">
         </div>` : ''}
       </div>
       <div class="card">
         <div class="consent-row ${S.privacy?'on':''}" id="consent-toggle">
           <div class="consent-box">${S.privacy?'✓':''}</div>
-          <div class="consent-text">${t('consent')}</div>
+          <div class="consent-text">${t('consent')} <span class="req">*</span></div>
         </div>
       </div>
       <div class="btn-nav">
