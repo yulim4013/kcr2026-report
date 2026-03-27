@@ -41,7 +41,7 @@
   /* ── form elements ── */
   .field { margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
-  .field label { display: block; font-size: 12px; color: #8E8E93; margin-bottom: 5px; }
+  .field label { display: block; font-size: 14px; color: #48484A; margin-bottom: 5px; }
   .field label .req { color: #FF3B30; }
   input[type=text], input[type=email], input[type=tel], textarea {
     width: 100%; padding: 10px 12px; border: 0.5px solid #E5E5EA; border-radius: 8px;
@@ -135,7 +135,7 @@
   /* ── sub-item likert rows (matrix) ── */
   .subitem-row { padding: 10px 0; border-bottom: 0.5px solid #F2F2F7; }
   .subitem-row:last-child { border-bottom: none; }
-  .subitem-label { font-size: 13px; color: #8E8E93; font-weight: 500; margin-bottom: 6px; }
+  .subitem-label { font-size: 13px; color: #48484A; font-weight: 500; margin-bottom: 6px; }
   .subitem-row .likert-group { gap: 4px; }
   .subitem-row .likert-item { width: 40px; height: 40px; font-size: 14px; }
 
@@ -366,11 +366,11 @@ const T = {
   // Prize
   prize_label: { ko: '경품 추첨 안내', en: 'Prize Information' },
   prize_info_domestic: { ko: '행사 종료 후 스타벅스 기프트카드를 문자로 발송해 드리오니, 아래의 정보를 입력해 주시기 바랍니다.', en: 'A Starbucks gift card will be sent via SMS after the event. Please enter your information below.' },
-  prize_info_foreign: { ko: '등록 데스크에서 류마냥 키링을 수령해 주세요.', en: 'Please visit the Registration Desk to receive your Rhumanyang keyring.' },
+  prize_info_foreign: { ko: '등록 데스크에서 류마냥 키링을 수령해 주세요.', en: 'Please visit the Registration Desk to receive your Rhumanyang (KCR Keyring) keyring.' },
   prize_name: { ko: '성함', en: 'Name' },
   prize_name_ph: { ko: '성함을 입력해주세요', en: 'Enter your name' },
   prize_phone: { ko: '휴대폰 번호', en: 'Phone number' },
-  prize_phone_ph: { ko: '010-0000-0000', en: '010-0000-0000' },
+  prize_phone_ph: { ko: '000-0000-0000', en: '000-0000-0000' },
 
   // Consent
   consent: { ko: '개인정보 수집 및 이용에 동의합니다. 수집된 정보는 KCR 2026 설문 분석 및 경품 발송 목적으로만 사용되며, 목적 달성 후 파기됩니다.',
@@ -402,8 +402,8 @@ const T = {
   // Success
   success_title: { ko: '설문이 제출되었습니다', en: 'Survey submitted successfully' },
   success_msg:   { ko: '귀한 의견 감사합니다. 응답이 정상적으로 기록되었습니다.', en: 'Thank you for your valuable feedback. Your response has been recorded.' },
-  success_prize_domestic: { ko: '당첨 시 행사 종료 후 문자로 스타벅스 기프트카드를 발송해 드립니다.', en: 'If selected, your Starbucks gift card will be sent via SMS after the event ends.' },
-  success_prize_foreign:  { ko: '등록 데스크에서 류마냥 키링을 수령해주세요!', en: 'Please collect your Rhumanyang keyring at the Registration Desk!' },
+  success_prize_domestic: { ko: '행사 종료 후 문자로 스타벅스 기프트카드를 발송해 드립니다.', en: 'Your Starbucks gift card will be sent via SMS after the event ends.' },
+  success_prize_foreign:  { ko: '등록 데스크에서 류마냥 키링을 수령해주세요!', en: 'Please collect your Rhumanyang (KCR Keyring) keyring at the Registration Desk!' },
   btn_new: { ko: '새 설문 작성', en: 'New Survey' },
 
   submit_error: { ko: '제출 중 오류가 발생했습니다', en: 'An error occurred during submission' }
@@ -603,13 +603,11 @@ const VIEWS = {
         <div class="type-cards">
           <div class="type-card ${S.respondent==='domestic'?'on':''}" data-resp="domestic">
             <div class="icon">🇰🇷</div>
-            <div class="label">${t('domestic')}</div>
-            <div class="sub">${t('domestic_sub')}</div>
+            <div class="label">Korean</div>
           </div>
           <div class="type-card ${S.respondent==='foreign'?'on':''}" data-resp="foreign">
             <div class="icon">🌍</div>
-            <div class="label">${t('foreign')}</div>
-            <div class="sub">${t('foreign_sub')}</div>
+            <div class="label">International</div>
           </div>
         </div>
       </div>
@@ -839,6 +837,10 @@ const VIEWS = {
       <div class="card">
         <div class="card-label">${t('prize_label')}</div>
         <div class="prize-info">${isDomestic ? t('prize_info_domestic') : t('prize_info_foreign')}</div>
+        ${!isDomestic ? `<div style="display:flex;gap:8px;margin-bottom:10px;">
+          <img src="류마냥-키링-1.png" alt="류마냥 키링" style="flex:1;width:50%;border-radius:8px;object-fit:cover;">
+          <img src="류마냥-키링-2.png" alt="류마냥 키링" style="flex:1;width:50%;border-radius:8px;object-fit:cover;">
+        </div>` : ''}
         <div class="field">
           <label>${t('prize_name')}</label>
           <input id="i-prize-name" type="text" placeholder="${t('prize_name_ph')}" value="${esc(S.prize_name)}">
