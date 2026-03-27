@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KCR 2026 Survey</title>
+<style>
+  /* ── reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif;
+         background: #F2F2F7; color: #1C1C1E; min-height: 100vh; }
+
+  /* ── layout ── */
+  .phone { max-width: 430px; margin: 0 auto; background: #F2F2F7; min-height: 100vh; padding-bottom: 32px; }
+  .topbar { background: #fff; border-bottom: 0.5px solid rgba(0,0,0,0.1);
+            padding: 14px 16px; display: flex; align-items: center; gap: 10px;
+            position: sticky; top: 0; z-index: 10;
+            margin: 0 16px; border-radius: 0 0 12px 12px; }
+  .topbar-title { font-size: 15px; font-weight: 600; flex: 1; }
+  .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+           background: #E6F1FB; color: #185FA5; }
+
+  /* ── key visual ── */
+  .kv-wrap { margin: 12px 16px 0; overflow: hidden; border-radius: 12px; }
+  .kv-wrap img { width: 100%; display: block; }
+
+  /* ── progress ── */
+  .steps { display: flex; gap: 5px; padding: 12px 16px 0; }
+  .step { flex: 1; height: 3px; border-radius: 2px; background: #E5E5EA; }
+  .step.done { background: #34C759; }
+  .step.active { background: #185FA5; }
+
+  /* ── content ── */
+  .content { padding: 12px 16px; }
+  .card { background: #fff; border-radius: 12px; border: 0.5px solid rgba(0,0,0,0.08);
+          padding: 14px 16px; margin-bottom: 10px; }
+  .card-label { font-size: 11px; font-weight: 600; color: #8E8E93;
+                letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* ── form elements ── */
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12px; color: #8E8E93; margin-bottom: 5px; }
+  .field label .req { color: #FF3B30; }
+  input[type=text], input[type=email], input[type=tel], textarea {
+    width: 100%; padding: 10px 12px; border: 0.5px solid #E5E5EA; border-radius: 8px;
+    font-size: 15px; font-family: inherit; background: #F9F9F9; color: #1C1C1E;
+    outline: none; transition: border-color .15s; -webkit-appearance: none; }
+  input:focus, textarea:focus { border-color: #185FA5; background: #fff; }
+  textarea { resize: none; line-height: 1.5; }
+  .field-hint { font-size: 11px; color: #8E8E93; margin-top: 3px; }
+
+  /* ── chips ── */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 8px 14px; border: 0.5px solid #E5E5EA; border-radius: 20px;
+          font-size: 13px; color: #8E8E93; cursor: pointer; background: #fff;
+          transition: all .15s; white-space: nowrap; }
+  .chip.on { background: #185FA5; border-color: #185FA5; color: #fff; font-weight: 600; }
+
+  /* ── checkbox (multi-select) ── */
+  .check-group { display: flex; flex-direction: column; gap: 5px; }
+  .check-item { display: flex; align-items: center; gap: 9px; padding: 10px 12px;
+                border: 0.5px solid #E5E5EA; border-radius: 8px; cursor: pointer;
+                font-size: 14px; color: #8E8E93; transition: all .15s; background: #fff; }
+  .check-item:hover { background: #F2F2F7; }
+  .check-item.on { border-color: #185FA5; background: #E6F1FB; color: #185FA5; }
+  .check-box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid #C7C7CC;
+               flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+               font-size: 12px; color: transparent; transition: all .15s; }
+  .check-item.on .check-box { border-color: #185FA5; background: #185FA5; color: #fff; }
+
+  /* ── consent ── */
+  .consent-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px;
+                 background: #F9F9F9; border-radius: 8px; cursor: pointer; }
+  .consent-box { width: 20px; height: 20px; border-radius: 4px; border: 1.5px solid #C7C7CC;
+                 flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+                 font-size: 14px; color: transparent; margin-top: 1px; transition: all .15s; }
+  .consent-row.on .consent-box { border-color: #185FA5; background: #185FA5; color: #fff; }
+  .consent-text { font-size: 13px; color: #1C1C1E; line-height: 1.5; }
+
+  /* ── buttons ── */
+  .btn-primary { width: 100%; padding: 14px; background: #185FA5; color: #fff;
+                 border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+                 cursor: pointer; margin-top: 4px; font-family: inherit; transition: background .15s; }
+  .btn-primary:hover { background: #0C447C; }
+  .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-nav { display: flex; gap: 8px; margin-top: 4px; }
+  .btn-back { flex: 1; padding: 14px; background: #fff; color: #8E8E93;
+              border: 0.5px solid #E5E5EA; border-radius: 12px; font-size: 15px; font-weight: 500;
+              cursor: pointer; font-family: inherit; text-align: center; }
+  .btn-next { flex: 2; padding: 14px; background: #185FA5; color: #fff;
+              border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+              cursor: pointer; font-family: inherit; transition: background .15s; }
+  .btn-next:hover { background: #0C447C; }
+
+  /* ── success ── */
+  .success-wrap { text-align: center; padding: 28px 16px; }
+  .ok-circle { width: 60px; height: 60px; border-radius: 50%; background: #D1F2E0;
+               display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+
+  /* ── loading overlay ── */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+             align-items: center; justify-content: center; z-index: 100; }
+  .overlay.show { display: flex; }
+  .spinner-box { background: #fff; border-radius: 16px; padding: 28px 32px;
+                 text-align: center; min-width: 160px; }
+  .spinner { width: 32px; height: 32px; border: 3px solid #E5E5EA;
+             border-top-color: #185FA5; border-radius: 50%;
+             animation: spin .7s linear infinite; margin: 0 auto 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-text { font-size: 14px; color: #8E8E93; }
+
+  /* ── error toast ── */
+  .toast { display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+           background: #FF3B30; color: #fff; padding: 10px 20px; border-radius: 20px;
+           font-size: 14px; font-weight: 600; z-index: 200; white-space: nowrap; }
+  .toast.show { display: block; }
+
+  /* ── language toggle ── */
+  .lang-toggle { display: flex; border: 1px solid #E5E5EA; border-radius: 14px; overflow: hidden; }
+  .lang-btn { padding: 4px 10px; font-size: 11px; font-weight: 600; cursor: pointer;
+              background: #fff; color: #8E8E93; border: none; font-family: inherit; transition: all .15s; }
+  .lang-btn.on { background: #185FA5; color: #fff; }
+
+  /* ── likert 5-point scale ── */
+  .likert-wrap { margin-top: 6px; }
+  .likert-group { display: flex; justify-content: space-between; gap: 6px; }
+  .likert-item { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #E5E5EA;
+                 background: #fff; display: flex; align-items: center; justify-content: center;
+                 font-size: 15px; font-weight: 600; color: #8E8E93; cursor: pointer; transition: all .15s; }
+  .likert-item.on { background: #185FA5; border-color: #185FA5; color: #fff; }
+  .likert-labels { display: flex; justify-content: space-between; font-size: 11px; color: #8E8E93; margin-top: 4px; padding: 0 4px; }
+
+  /* ── sub-item likert rows (matrix) ── */
+  .subitem-row { padding: 10px 0; border-bottom: 0.5px solid #F2F2F7; }
+  .subitem-row:last-child { border-bottom: none; }
+  .subitem-label { font-size: 13px; color: #8E8E93; font-weight: 500; margin-bottom: 6px; }
+  .subitem-row .likert-group { gap: 4px; }
+  .subitem-row .likert-item { width: 40px; height: 40px; font-size: 14px; }
+
+  /* ── start screen type cards ── */
+  .type-cards { display: flex; gap: 12px; margin-top: 16px; }
+  .type-card { flex: 1; padding: 28px 16px; border-radius: 12px; border: 1.5px solid #E5E5EA;
+               cursor: pointer; text-align: center; transition: all .15s; background: #fff; }
+  .type-card:hover { border-color: #185FA5; }
+  .type-card.on { border-color: #185FA5; background: #E6F1FB; }
+  .type-card .icon { font-size: 36px; margin-bottom: 10px; }
+  .type-card .label { font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px; }
+  .type-card .sub { font-size: 12px; color: #8E8E93; }
+
+  /* ── prize info box ── */
+  .prize-info { background: #E6F1FB; border-radius: 10px; padding: 12px 14px;
+                font-size: 13px; color: #0C447C; line-height: 1.6; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<!-- setup screen -->
+<div id="setup-screen" class="phone" style="display:none">
+  <div class="topbar">
+    <div class="topbar-title">Survey</div>
+    <span class="badge">KCR 2026</span>
+  </div>
+  <div class="content" style="padding-top:24px">
+    <div class="card">
+      <div class="card-label">INITIAL SETUP</div>
+      <div class="prize-info">
+        Apps Script Web App URL을 입력해야 합니다.
+      </div>
+      <div class="field">
+        <label>Apps Script Web App URL</label>
+        <input type="text" id="temp-url" placeholder="https://script.google.com/macros/s/...">
+      </div>
+      <button class="btn-primary" onclick="applyTempUrl()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- main app -->
+<div id="main-app" class="phone" style="display:none">
+  <div id="app"></div>
+</div>
+
+<!-- loading overlay -->
+<div class="overlay" id="overlay">
+  <div class="spinner-box">
+    <div class="spinner"></div>
+    <div class="spinner-text" id="spinner-msg">제출 중...</div>
+  </div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// GAS Web App URL
+// ============================================================
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyhrTW7FiWPzH3JaLTKYwx4JSFoOlezd9sjPRx1LIY7fDg01fkQMrWFv7spmO5RSCeKEg/exec";
+
+// ============================================================
+// i18n — bilingual text
+// ============================================================
+const T = {
+  app_title:      { ko: '만족도 조사', en: 'Satisfaction Survey' },
+  start_title:    { ko: '참여 유형을 선택해주세요', en: 'Please select your type' },
+  domestic:       { ko: '내국인', en: 'Korean' },
+  domestic_sub:   { ko: '국문으로 참여합니다', en: 'Participate in Korean' },
+  foreign:        { ko: '외국인', en: 'International' },
+  foreign_sub:    { ko: '영문으로 참여합니다', en: 'Participate in English' },
+  btn_start:      { ko: '시작하기', en: 'Start' },
+  btn_next:       { ko: '다음', en: 'Next' },
+  btn_prev:       { ko: '이전', en: 'Back' },
+  btn_submit:     { ko: '제출하기', en: 'Submit' },
+  submitting:     { ko: '제출 중...', en: 'Submitting...' },
+
+  // Section labels
+  sec1: { ko: 'I. 기본 정보 및 참석 경로', en: 'I. Basic Information' },
+  sec2: { ko: 'II. AI 번역 이용 현황', en: 'II. AI Translation Usage' },
+  sec3: { ko: 'III. 번역 품질 평가', en: 'III. Translation Quality' },
+  sec4: { ko: 'IV. AI 종합 사용성', en: 'IV. Overall AI Usability' },
+  sec5: { ko: 'V. 학술 프로그램 및 행사장', en: 'V. Academic & Venue' },
+  sec6: { ko: 'VI. 식사 및 케이터링', en: 'VI. Meals & Catering' },
+  sec7: { ko: 'VII. 종합 평가', en: 'VII. Overall Evaluation' },
+
+  // Q1
+  q1: { ko: '1. 귀하의 소속(직종)을 선택해 주십시오.', en: '1. Please select your affiliation/occupation.' },
+  q1_prof:  { ko: '대학교수', en: 'Professor' },
+  q1_spec:  { ko: '전문의', en: 'Specialist' },
+  q1_fell:  { ko: '전임의', en: 'Fellow' },
+  q1_res:   { ko: '전공의', en: 'Resident' },
+  q1_nurse: { ko: '간호사', en: 'Nurse' },
+  q1_rsch:  { ko: '연구원', en: 'Researcher' },
+  q1_stud:  { ko: '학생', en: 'Student' },
+  q1_corp:  { ko: '기업관계자', en: 'Industry' },
+  q1_etc:   { ko: '기타', en: 'Other' },
+
+  // Q2
+  q2: { ko: '2. KCR 참석 횟수 (금번 포함)', en: '2. Number of KCR attendances (including this year)' },
+  q2_1: { ko: '1회 (처음)', en: '1st time' },
+  q2_2: { ko: '2~3회', en: '2-3 times' },
+  q2_3: { ko: '4~5회', en: '4-5 times' },
+  q2_4: { ko: '6~10회', en: '6-10 times' },
+  q2_5: { ko: '11회 이상', en: '11+ times' },
+
+  // Q3
+  q3: { ko: '3. 본 행사를 어떤 경로를 통해 인지하셨습니까?', en: '3. How did you first learn about this event?' },
+  q3_news:  { ko: '뉴스레터', en: 'Newsletter' },
+  q3_web:   { ko: '홈페이지 공지', en: 'Website' },
+  q3_peer:  { ko: '동료 권유', en: 'Colleague' },
+  q3_etc:   { ko: '기타', en: 'Other' },
+
+  // Q4
+  q4: { ko: '4. AI 기술(ChatGPT, 자동번역 등)에 대한 친숙도', en: '4. Familiarity with AI technology (ChatGPT, auto-translation, etc.)' },
+  q4_lo: { ko: '전혀 아님', en: 'Not at all' },
+  q4_hi: { ko: '매우 친숙함', en: 'Very familiar' },
+
+  // Q5
+  q5: { ko: '5. 과거 국제회의에서 인간 통역 서비스를 이용한 경험', en: '5. Have you used human interpretation at international conferences?' },
+  yes: { ko: '예', en: 'Yes' },
+  no:  { ko: '아니오', en: 'No' },
+
+  // Q6
+  q6: { ko: '6. 모든 강의장 스크린에서 AI 번역 자막이 제공됨을 인지하셨습니까?', en: '6. Were you aware that AI translation subtitles were provided on all lecture hall screens?' },
+  q6_yes:  { ko: '예 (모든 강의장 인지)', en: 'Yes (aware of all rooms)' },
+  q6_no:   { ko: '아니오 (일부만 인지)', en: 'No (aware of some only)' },
+  q6_none: { ko: '몰랐음', en: 'Did not know' },
+
+  // Q7
+  q7: { ko: '7. 주로 이용하신 AI 번역 확인 수단 (중복 선택)', en: '7. AI translation methods used (select all that apply)' },
+  q7_screen: { ko: '강의장 메인 스크린 자막', en: 'Main screen subtitles' },
+  q7_text:   { ko: '전용 APP (실시간 텍스트)', en: 'Dedicated APP (real-time text)' },
+  q7_voice:  { ko: '전용 APP (음성 번역)', en: 'Dedicated APP (voice translation)' },
+  q7_etc:    { ko: '기타', en: 'Other' },
+
+  // Q8
+  q8: { ko: '8. 전용 APP 설치 및 접속 편리성', en: '8. Convenience of APP installation and access' },
+  q8_lo: { ko: '매우 복잡함', en: 'Very complex' },
+  q8_hi: { ko: '매우 간편함', en: 'Very easy' },
+
+  // Q9
+  q9: { ko: '9. AI 번역 세부 품질 평가', en: '9. AI translation quality assessment' },
+  q9_1: { ko: '의학 전문 용어의 정확성', en: 'Medical terminology accuracy' },
+  q9_2: { ko: '문장의 자연스러운 번역 품질', en: 'Translation fluency' },
+  q9_3: { ko: '발표와 번역 간 실시간성(딜레이)', en: 'Real-time latency' },
+  q9_4: { ko: 'APP 내 텍스트 가독성', en: 'APP text readability' },
+  q9_5: { ko: '음성 번역 서비스 품질', en: 'Voice translation quality' },
+  q9_lo: { ko: '매우 낮음', en: 'Very low' },
+  q9_hi: { ko: '매우 높음', en: 'Very high' },
+
+  // Q10
+  q10: { ko: '10. 음성 번역이 자막보다 강연 이해에 도움이 되었습니까?', en: '10. Was voice translation more helpful than subtitles for understanding lectures?' },
+  q10_lo: { ko: '전혀 도움 안 됨', en: 'Not helpful at all' },
+  q10_hi: { ko: '매우 큰 도움', en: 'Very helpful' },
+
+  // Q11
+  q11: { ko: '11. 모든 강의장 스크린 번역 도입 만족도', en: '11. Satisfaction with translation on all lecture hall screens' },
+  q11_5: { ko: '매우 만족', en: 'Very satisfied' },
+  q11_4: { ko: '만족', en: 'Satisfied' },
+  q11_3: { ko: '보통', en: 'Neutral' },
+  q11_2: { ko: '불만족', en: 'Dissatisfied' },
+  q11_1: { ko: '매우 불만족', en: 'Very dissatisfied' },
+
+  // Q12
+  q12: { ko: '12. 가장 효과적이었던 방식', en: '12. Most effective method' },
+  q12_screen: { ko: '스크린 자막 중심', en: 'Screen subtitles' },
+  q12_app:    { ko: '전용 APP 중심', en: 'Dedicated APP' },
+  q12_voice:  { ko: '음성 번역 중심', en: 'Voice translation' },
+  q12_both:   { ko: '두세 가지 병행', en: 'Combined methods' },
+
+  // Q13
+  q13: { ko: '13. 향후 AI 번역 지속 도입 찬성 여부', en: '13. Do you support continued AI translation in future conferences?' },
+  q13_lo: { ko: '강력히 반대', en: 'Strongly disagree' },
+  q13_hi: { ko: '적극 찬성', en: 'Strongly agree' },
+
+  // Q14
+  q14: { ko: '14. AI 번역 서비스에 대한 의견', en: '14. Comments on the AI translation service' },
+  q14_ph: { ko: '좋았던 점이나 개선사항을 자유롭게 기재해 주십시오', en: 'Please share any positive aspects or areas for improvement' },
+
+  // Q15-20
+  q1520: { ko: '15~20. 학술대회 운영 전반 만족도', en: '15-20. Overall conference operations satisfaction' },
+  q15: { ko: '학술 프로그램 구성 및 주제', en: 'Academic program topics & structure' },
+  q16: { ko: '연자 및 좌장의 전문성', en: 'Speaker & chair expertise' },
+  q17: { ko: '현장 등록 및 키오스크 절차', en: 'On-site registration & kiosk process' },
+  q18: { ko: '전용 APP 프로그램 확인/공지', en: 'APP program info & announcements' },
+  q19: { ko: '전시 홀 규모 및 유익성', en: 'Exhibition hall scale & value' },
+  q20: { ko: '행사장 시설 편의성', en: 'Venue facility convenience' },
+  q1520_lo: { ko: '매우 불만족', en: 'Very dissatisfied' },
+  q1520_hi: { ko: '매우 만족', en: 'Very satisfied' },
+
+  // Q21
+  q21: { ko: '21. 식사 품질과 양', en: '21. Meal quality and portion' },
+  q21_lo: { ko: '매우 불만족', en: 'Very dissatisfied' },
+  q21_hi: { ko: '매우 만족', en: 'Very satisfied' },
+
+  // Q22
+  q22: { ko: '22. 커피 브레이크 다과/음료', en: '22. Coffee break refreshments & beverages' },
+  q22_lo: { ko: '매우 불만족', en: 'Very dissatisfied' },
+  q22_hi: { ko: '매우 만족', en: 'Very satisfied' },
+
+  // Q23
+  q23: { ko: '23. 식사 및 F&B 개선 사항', en: '23. Suggestions for meals & F&B improvement' },
+  q23_ph: { ko: '개선이 필요한 사항을 기재해 주십시오', en: 'Please describe areas for improvement' },
+
+  // Q24
+  q24: { ko: '24. 내년(KCR 2027) 참석 의향', en: '24. Do you intend to attend next year (KCR 2027)?' },
+  q24_yes:  { ko: '예', en: 'Yes' },
+  q24_no:   { ko: '아니오', en: 'No' },
+  q24_tbd:  { ko: '미정', en: 'Undecided' },
+
+  // Q25
+  q25: { ko: '25. 이번 학술대회의 전반적 만족도', en: '25. Overall satisfaction with this conference' },
+  q25_lo: { ko: '매우 불만족', en: 'Very dissatisfied' },
+  q25_hi: { ko: '매우 만족', en: 'Very satisfied' },
+
+  // Q26
+  q26: { ko: '26. 이 학술대회를 동료에게 추천하시겠습니까?', en: '26. Would you recommend this conference to a colleague?' },
+  q26_lo: { ko: '전혀 추천하지 않음', en: 'Not at all' },
+  q26_hi: { ko: '적극 추천', en: 'Highly recommend' },
+
+  // Q27
+  q27: { ko: '27. 기타 건의사항', en: '27. Any other suggestions' },
+  q27_ph: { ko: '학술대회 발전을 위한 건의사항을 자유롭게 작성해 주십시오', en: 'Please share any suggestions for future conferences' },
+
+  // Prize
+  prize_label: { ko: '경품 추첨 안내', en: 'Prize Information' },
+  prize_info_domestic: { ko: '행사 종료 후 스타벅스 기프트카드를 문자로 발송해 드리오니, 아래의 정보를 입력해 주시기 바랍니다.', en: 'A Starbucks gift card will be sent via SMS after the event. Please enter your information below.' },
+  prize_info_foreign: { ko: '등록 데스크에서 류마냥 키링을 수령해 주세요.', en: 'Please visit the Registration Desk to receive your Rhumanyang keyring.' },
+  prize_name: { ko: '성함', en: 'Name' },
+  prize_name_ph: { ko: '성함을 입력해주세요', en: 'Enter your name' },
+  prize_phone: { ko: '휴대폰 번호', en: 'Phone number' },
+  prize_phone_ph: { ko: '010-0000-0000', en: '010-0000-0000' },
+
+  // Consent
+  consent: { ko: '개인정보 수집 및 이용에 동의합니다. 수집된 정보는 KCR 2026 설문 분석 및 경품 발송 목적으로만 사용되며, 목적 달성 후 파기됩니다.',
+             en: 'I agree to the collection and use of personal information. The information collected will be used solely for the KCR 2026 survey analysis and prize delivery, and will be destroyed after fulfilling the purpose.' },
+
+  // Validation
+  v_respondent: { ko: '참여 유형을 선택해주세요', en: 'Please select your type' },
+  v_q1:    { ko: '소속을 선택해주세요', en: 'Please select your affiliation' },
+  v_q2:    { ko: '참석 횟수를 선택해주세요', en: 'Please select attendance count' },
+  v_q3:    { ko: '인지 경로를 선택해주세요', en: 'Please select how you learned about this event' },
+  v_q4:    { ko: 'AI 친숙도를 선택해주세요', en: 'Please rate your AI familiarity' },
+  v_q5:    { ko: '통역 경험 여부를 선택해주세요', en: 'Please select your interpretation experience' },
+  v_q6:    { ko: 'AI 번역 인지 여부를 선택해주세요', en: 'Please select AI translation awareness' },
+  v_q7:    { ko: 'AI 번역 이용 수단을 선택해주세요', en: 'Please select at least one method' },
+  v_q8:    { ko: 'APP 편리성을 선택해주세요', en: 'Please rate APP convenience' },
+  v_q9:    { ko: '번역 품질 평가를 모두 입력해주세요', en: 'Please rate all translation quality items' },
+  v_q10:   { ko: '음성 번역 도움 정도를 선택해주세요', en: 'Please rate voice translation helpfulness' },
+  v_q11:   { ko: '스크린 번역 만족도를 선택해주세요', en: 'Please rate screen translation satisfaction' },
+  v_q12:   { ko: '가장 효과적인 방식을 선택해주세요', en: 'Please select the most effective method' },
+  v_q13:   { ko: 'AI 번역 지속 찬성 여부를 선택해주세요', en: 'Please rate support for continued AI translation' },
+  v_q1520: { ko: '학술/행사장 만족도를 모두 입력해주세요', en: 'Please rate all academic & venue items' },
+  v_q21:   { ko: '식사 품질 만족도를 선택해주세요', en: 'Please rate meal quality' },
+  v_q22:   { ko: '커피 브레이크 만족도를 선택해주세요', en: 'Please rate coffee break satisfaction' },
+  v_q24:   { ko: '내년 참석 의향을 선택해주세요', en: 'Please select your attendance intention' },
+  v_q25:   { ko: '전반적 만족도를 선택해주세요', en: 'Please rate overall satisfaction' },
+  v_q26:   { ko: '추천 의향을 선택해주세요', en: 'Please rate your recommendation intention' },
+  v_privacy: { ko: '개인정보 수집에 동의해주세요', en: 'Please agree to the privacy policy' },
+
+  // Success
+  success_title: { ko: '설문이 제출되었습니다', en: 'Survey submitted successfully' },
+  success_msg:   { ko: '귀한 의견 감사합니다. 응답이 정상적으로 기록되었습니다.', en: 'Thank you for your valuable feedback. Your response has been recorded.' },
+  success_prize_domestic: { ko: '당첨 시 행사 종료 후 문자로 스타벅스 기프트카드를 발송해 드립니다.', en: 'If selected, your Starbucks gift card will be sent via SMS after the event ends.' },
+  success_prize_foreign:  { ko: '등록 데스크에서 류마냥 키링을 수령해주세요!', en: 'Please collect your Rhumanyang keyring at the Registration Desk!' },
+  btn_new: { ko: '새 설문 작성', en: 'New Survey' },
+
+  submit_error: { ko: '제출 중 오류가 발생했습니다', en: 'An error occurred during submission' }
+};
+
+// ============================================================
+// Q1 options mapping (data-key → T key)
+// ============================================================
+const Q1_OPTS = ['prof','spec','fell','res','nurse','rsch','stud','corp','etc'];
+const Q2_OPTS = ['1','2','3','4','5'];
+const Q3_OPTS = ['news','web','peer','etc'];
+
+// ============================================================
+// State
+// ============================================================
+let GAS = GAS_URL;
+let S = {
+  step: 0,
+  lang: 'ko',
+  respondent: '',
+  q1: '', q2: '', q3: '', q4: 0, q5: '',
+  q6: '', q7: [], q8: 0,
+  q9_1: 0, q9_2: 0, q9_3: 0, q9_4: 0, q9_5: 0, q10: 0,
+  q11: '', q12: '', q13: 0, q14: '',
+  q15: 0, q16: 0, q17: 0, q18: 0, q19: 0, q20: 0,
+  q21: 0, q22: 0, q23: '',
+  q24: '', q25: 0, q26: 0, q27: '',
+  prize_name: '', prize_phone: '',
+  privacy: false,
+  submitted: false
+};
+
+// ============================================================
+// Utilities
+// ============================================================
+const g = id => document.getElementById(id);
+function t(k) { return T[k]?.[S.lang] || T[k]?.ko || k; }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function showOverlay(on) {
+  g('overlay').classList.toggle('show', on);
+  g('spinner-msg').textContent = t('submitting');
+}
+function showToast(msg) {
+  const el = g('toast'); el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+function stepsHTML(total, current) {
+  return '<div class="steps">' + Array.from({length: total}, (_, i) => {
+    const idx = i + 1;
+    return '<div class="step ' + (idx < current ? 'done' : idx === current ? 'active' : '') + '"></div>';
+  }).join('') + '</div>';
+}
+function formatPhone(v) {
+  const n = v.replace(/[^0-9]/g,'').slice(0,11);
+  if (n.length <= 3) return n;
+  if (n.length <= 7) return n.slice(0,3)+'-'+n.slice(3);
+  return n.slice(0,3)+'-'+n.slice(3,7)+'-'+n.slice(7);
+}
+function likertHTML(key, val, lo, hi) {
+  let h = '<div class="likert-wrap"><div class="likert-group">';
+  for (let i = 1; i <= 5; i++)
+    h += '<div class="likert-item '+(val===i?'on':'')+'" data-likert="'+key+'" data-val="'+i+'">'+i+'</div>';
+  h += '</div><div class="likert-labels"><span>'+lo+'</span><span>'+hi+'</span></div></div>';
+  return h;
+}
+function subLikertHTML(key, label, val) {
+  let h = '<div class="subitem-row"><div class="subitem-label">'+label+'</div>';
+  h += '<div class="likert-group">';
+  for (let i = 1; i <= 5; i++)
+    h += '<div class="likert-item '+(val===i?'on':'')+'" data-likert="'+key+'" data-val="'+i+'">'+i+'</div>';
+  h += '</div></div>';
+  return h;
+}
+
+function topbarHTML() {
+  const langToggle = S.step === 0 ? `
+    <div class="lang-toggle">
+      <button class="lang-btn ${S.lang==='ko'?'on':''}" data-lang="ko">KO</button>
+      <button class="lang-btn ${S.lang==='en'?'on':''}" data-lang="en">EN</button>
+    </div>` : '';
+  return `<div class="topbar">
+    <div class="topbar-title">${t('app_title')}</div>
+    ${langToggle}
+    <span class="badge">KCR 2026</span>
+  </div>`;
+}
+
+// ── localStorage ──
+function checkSubmitted() {
+  try { const d = localStorage.getItem('kcr2026_survey_submitted'); if (d) return JSON.parse(d); } catch(e) {}
+  return null;
+}
+function markSubmitted() {
+  localStorage.setItem('kcr2026_survey_submitted', JSON.stringify({ ts: new Date().toISOString(), respondent: S.respondent }));
+}
+
+// ============================================================
+// Init
+// ============================================================
+window.onload = () => {
+  const prev = checkSubmitted();
+  if (prev) { S.submitted = true; S.respondent = prev.respondent || ''; }
+  if (!GAS) { g('setup-screen').style.display = 'block'; }
+  else { g('main-app').style.display = 'block'; render(); }
+};
+function applyTempUrl() {
+  const url = g('temp-url').value.trim();
+  if (!url.startsWith('https://script.google.com')) { showToast('Enter a valid Apps Script URL'); return; }
+  GAS = url;
+  g('setup-screen').style.display = 'none';
+  g('main-app').style.display = 'block';
+  render();
+}
+
+// ============================================================
+// Render
+// ============================================================
+function render() {
+  const view = S.submitted ? 'success' : 'step' + S.step;
+  g('app').innerHTML = VIEWS[view]();
+  bindEvents();
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// Save text inputs
+// ============================================================
+function saveInputs() {
+  const v = id => { const el = g(id); return el ? el.value.trim() : null; };
+  if (S.step === 4) { const x = v('i-q14'); if (x !== null) S.q14 = x; }
+  if (S.step === 6) { const x = v('i-q23'); if (x !== null) S.q23 = x; }
+  if (S.step === 7) {
+    const x = v('i-q27'); if (x !== null) S.q27 = x;
+    const n = v('i-prize-name'); if (n !== null) S.prize_name = n;
+    const p = v('i-prize-phone'); if (p !== null) S.prize_phone = p;
+  }
+}
+
+// ============================================================
+// Validation
+// ============================================================
+function validate(step) {
+  switch(step) {
+    case 0:
+      if (!S.respondent) { showToast(t('v_respondent')); return false; }
+      return true;
+    case 1:
+      if (!S.q1) { showToast(t('v_q1')); return false; }
+      if (!S.q2) { showToast(t('v_q2')); return false; }
+      if (!S.q3) { showToast(t('v_q3')); return false; }
+      if (!S.q4) { showToast(t('v_q4')); return false; }
+      if (!S.q5) { showToast(t('v_q5')); return false; }
+      return true;
+    case 2:
+      if (!S.q6) { showToast(t('v_q6')); return false; }
+      if (!S.q7.length) { showToast(t('v_q7')); return false; }
+      if (!S.q8) { showToast(t('v_q8')); return false; }
+      return true;
+    case 3:
+      if (!S.q9_1 || !S.q9_2 || !S.q9_3 || !S.q9_4 || !S.q9_5) { showToast(t('v_q9')); return false; }
+      if (!S.q10) { showToast(t('v_q10')); return false; }
+      return true;
+    case 4:
+      if (!S.q11) { showToast(t('v_q11')); return false; }
+      if (!S.q12) { showToast(t('v_q12')); return false; }
+      if (!S.q13) { showToast(t('v_q13')); return false; }
+      return true;
+    case 5:
+      if (!S.q15 || !S.q16 || !S.q17 || !S.q18 || !S.q19 || !S.q20) { showToast(t('v_q1520')); return false; }
+      return true;
+    case 6:
+      if (!S.q21) { showToast(t('v_q21')); return false; }
+      if (!S.q22) { showToast(t('v_q22')); return false; }
+      return true;
+    case 7:
+      if (!S.q24) { showToast(t('v_q24')); return false; }
+      if (!S.q25) { showToast(t('v_q25')); return false; }
+      if (!S.q26) { showToast(t('v_q26')); return false; }
+      if (!S.privacy) { showToast(t('v_privacy')); return false; }
+      return true;
+  }
+  return true;
+}
+
+// ============================================================
+// Views
+// ============================================================
+const VIEWS = {
+
+  // ── Step 0: Respondent Type ──
+  step0: () => `
+    ${topbarHTML()}
+    <div class="kv-wrap"><img src="kv-header.png" alt="KCR 2026"></div>
+    <div class="content">
+      <div class="card">
+        <div class="card-label">${t('start_title')}</div>
+        <div class="type-cards">
+          <div class="type-card ${S.respondent==='domestic'?'on':''}" data-resp="domestic">
+            <div class="icon">🇰🇷</div>
+            <div class="label">${t('domestic')}</div>
+            <div class="sub">${t('domestic_sub')}</div>
+          </div>
+          <div class="type-card ${S.respondent==='foreign'?'on':''}" data-resp="foreign">
+            <div class="icon">🌍</div>
+            <div class="label">${t('foreign')}</div>
+            <div class="sub">${t('foreign_sub')}</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-next">${t('btn_start')}</button>
+    </div>
+  `,
+
+  // ── Step 1: Basic Info ──
+  step1: () => `
+    ${topbarHTML()}
+    ${stepsHTML(7, 1)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">${t('sec1')}</div>
+        <div class="field">
+          <label>${t('q1')} <span class="req">*</span></label>
+          <div class="chip-group">
+            ${Q1_OPTS.map(k => `<div class="chip ${S.q1===k?'on':''}" data-q1="${k}">${t('q1_'+k)}</div>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>${t('q2')} <span class="req">*</span></label>
+          <div class="chip-group">
+            ${Q2_OPTS.map(k => `<div class="chip ${S.q2===k?'on':''}" data-q2="${k}">${t('q2_'+k)}</div>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>${t('q3')} <span class="req">*</span></label>
+          <div class="chip-group">
+            ${Q3_OPTS.map(k => `<div class="chip ${S.q3===k?'on':''}" data-q3="${k}">${t('q3_'+k)}</div>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>${t('q4')} <span class="req">*</span></label>
+          ${likertHTML('q4', S.q4, t('q4_lo'), t('q4_hi'))}
+        </div>
+        <div class="field">
+          <label>${t('q5')} <span class="req">*</span></label>
+          <div class="chip-group">
+            ${['yes','no'].map(k => `<div class="chip ${S.q5===k?'on':''}" data-q5="${k}">${t(k)}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-next">${t('btn_next')}</button>
+    </div>
+  `,
+
+  // ── Step 2: AI Translation Usage ──
+  step2: () => `
+    ${topbarHTML()}
+    ${stepsHTML(7, 2)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">${t('sec2')}</div>
+        <div class="field">
+          <label>${t('q6')} <span class="req">*</span></label>
+          <div class="chip-group">
+            ${['yes','no','none'].map(k => `<div class="chip ${S.q6===k?'on':''}" data-q6="${k}">${t('q6_'+k)}</div>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>${t('q7')} <span class="req">*</span></label>
+          <div class="check-group">
+            ${['screen','text','voice','etc'].map(k => `
+              <div class="check-item ${S.q7.includes(k)?'on':''}" data-q7="${k}">
+                <div class="check-box">${S.q7.includes(k)?'✓':''}</div>
+                <span>${t('q7_'+k)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>${t('q8')} <span class="req">*</span></label>
+          ${likertHTML('q8', S.q8, t('q8_lo'), t('q8_hi'))}
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">${t('btn_prev')}</button>
+        <button class="btn-next" id="btn-next">${t('btn_next')}</button>
+      </div>
+    </div>
+  `,
+
+  // ── Step 3: Translation Quality ──
+  step3: () => `
+    ${topbarHTML()}
+    ${stepsHTML(7, 3)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">${t('sec3')}</div>
+        <div class="field">
+          <label>${t('q9')} <span class="req">*</span></label>
+          <div class="field-hint">${t('q9_lo')} (1) — ${t('q9_hi')} (5)</div>
+          ${subLikertHTML('q9_1', t('q9_1'), S.q9_1)}
+          ${subLikertHTML('q9_2', t('q9_2'), S.q9_2)}
+          ${subLikertHTML('q9_3', t('q9_3'), S.q9_3)}
+          ${subLikertHTML('q9_4', t('q9_4'), S.q9_4)}
+          ${subLikertHTML('q9_5', t('q9_5'), S.q9_5)}
+        </div>
+        <div class="field">
+          <label>${t('q10')} <span class="req">*</span></label>
+          ${likertHTML('q10', S.q10, t('q10_lo'), t('q10_hi'))}
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">${t('btn_prev')}</button>
+        <button class="btn-next" id="btn-next">${t('btn_next')}</button>
+      </div>
+    </div>
+  `,
+
+  // ── Step 4: AI Overall ──
+  step4: () => `
+    ${topbarHTML()}
+    ${stepsHTML(7, 4)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">${t('sec4')}</div>
+        <div class="field">
+          <label>${t('q11')} <span class="req">*</span></label>
+          <div class="chip-group">
+            ${['5','4','3','2','1'].map(k => `<div class="chip ${S.q11===k?'on':''}" data-q11="${k}">${t('q11_'+k)}</div>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>${t('q12')} <span class="req">*</span></label>
+          <div class="chip-group">
+            ${['screen','app','voice','both'].map(k => `<div class="chip ${S.q12===k?'on':''}" data-q12="${k}">${t('q12_'+k)}</div>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>${t('q13')} <span class="req">*</span></label>
+          ${likertHTML('q13', S.q13, t('q13_lo'), t('q13_hi'))}
+        </div>
+        <div class="field">
+          <label>${t('q14')}</label>
+          <textarea id="i-q14" rows="3" placeholder="${t('q14_ph')}">${esc(S.q14)}</textarea>
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">${t('btn_prev')}</button>
+        <button class="btn-next" id="btn-next">${t('btn_next')}</button>
+      </div>
+    </div>
+  `,
+
+  // ── Step 5: Academic & Venue ──
+  step5: () => `
+    ${topbarHTML()}
+    ${stepsHTML(7, 5)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">${t('sec5')}</div>
+        <div class="field">
+          <label>${t('q1520')} <span class="req">*</span></label>
+          <div class="field-hint">${t('q1520_lo')} (1) — ${t('q1520_hi')} (5)</div>
+          ${subLikertHTML('q15', t('q15'), S.q15)}
+          ${subLikertHTML('q16', t('q16'), S.q16)}
+          ${subLikertHTML('q17', t('q17'), S.q17)}
+          ${subLikertHTML('q18', t('q18'), S.q18)}
+          ${subLikertHTML('q19', t('q19'), S.q19)}
+          ${subLikertHTML('q20', t('q20'), S.q20)}
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">${t('btn_prev')}</button>
+        <button class="btn-next" id="btn-next">${t('btn_next')}</button>
+      </div>
+    </div>
+  `,
+
+  // ── Step 6: Meals ──
+  step6: () => `
+    ${topbarHTML()}
+    ${stepsHTML(7, 6)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">${t('sec6')}</div>
+        <div class="field">
+          <label>${t('q21')} <span class="req">*</span></label>
+          ${likertHTML('q21', S.q21, t('q21_lo'), t('q21_hi'))}
+        </div>
+        <div class="field">
+          <label>${t('q22')} <span class="req">*</span></label>
+          ${likertHTML('q22', S.q22, t('q22_lo'), t('q22_hi'))}
+        </div>
+        <div class="field">
+          <label>${t('q23')}</label>
+          <textarea id="i-q23" rows="3" placeholder="${t('q23_ph')}">${esc(S.q23)}</textarea>
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">${t('btn_prev')}</button>
+        <button class="btn-next" id="btn-next">${t('btn_next')}</button>
+      </div>
+    </div>
+  `,
+
+  // ── Step 7: Overall + Prize + Submit ──
+  step7: () => {
+    const isDomestic = S.respondent === 'domestic';
+    return `
+    ${topbarHTML()}
+    ${stepsHTML(7, 7)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">${t('sec7')}</div>
+        <div class="field">
+          <label>${t('q24')} <span class="req">*</span></label>
+          <div class="chip-group">
+            ${['yes','no','tbd'].map(k => `<div class="chip ${S.q24===k?'on':''}" data-q24="${k}">${t('q24_'+k)}</div>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label>${t('q25')} <span class="req">*</span></label>
+          ${likertHTML('q25', S.q25, t('q25_lo'), t('q25_hi'))}
+        </div>
+        <div class="field">
+          <label>${t('q26')} <span class="req">*</span></label>
+          ${likertHTML('q26', S.q26, t('q26_lo'), t('q26_hi'))}
+        </div>
+        <div class="field">
+          <label>${t('q27')}</label>
+          <textarea id="i-q27" rows="3" placeholder="${t('q27_ph')}">${esc(S.q27)}</textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">${t('prize_label')}</div>
+        <div class="prize-info">${isDomestic ? t('prize_info_domestic') : t('prize_info_foreign')}</div>
+        <div class="field">
+          <label>${t('prize_name')}</label>
+          <input id="i-prize-name" type="text" placeholder="${t('prize_name_ph')}" value="${esc(S.prize_name)}">
+        </div>
+        ${isDomestic ? `
+        <div class="field">
+          <label>${t('prize_phone')}</label>
+          <input id="i-prize-phone" type="tel" placeholder="${t('prize_phone_ph')}" value="${esc(S.prize_phone)}">
+        </div>` : ''}
+      </div>
+      <div class="card">
+        <div class="consent-row ${S.privacy?'on':''}" id="consent-toggle">
+          <div class="consent-box">${S.privacy?'✓':''}</div>
+          <div class="consent-text">${t('consent')}</div>
+        </div>
+      </div>
+      <div class="btn-nav">
+        <button class="btn-back" id="btn-prev">${t('btn_prev')}</button>
+        <button class="btn-next" id="btn-submit">${t('btn_submit')}</button>
+      </div>
+    </div>
+    `;
+  },
+
+  // ── Success ──
+  success: () => `
+    ${topbarHTML()}
+    <div class="content">
+      <div class="success-wrap">
+        <div class="ok-circle"><span style="font-size:28px;color:#34C759">✓</span></div>
+        <div style="font-size:18px;font-weight:700;color:#1C1C1E;margin-bottom:6px">${t('success_title')}</div>
+        <div style="font-size:14px;color:#8E8E93;margin-bottom:10px;line-height:1.6">${t('success_msg')}</div>
+        <div style="font-size:13px;color:#185FA5;font-weight:600;margin-bottom:18px">
+          ${S.respondent === 'domestic' ? t('success_prize_domestic') : t('success_prize_foreign')}
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-new" style="background:#fff;color:#8E8E93;border:0.5px solid #E5E5EA">${t('btn_new')}</button>
+    </div>
+  `
+};
+
+// ============================================================
+// Event Binding
+// ============================================================
+function bindEvents() {
+  // Language toggle
+  document.querySelectorAll('[data-lang]').forEach(el => {
+    el.onclick = () => { S.lang = el.dataset.lang; render(); };
+  });
+
+  // Navigation
+  const btnNext = g('btn-next');
+  if (btnNext) btnNext.onclick = () => { saveInputs(); if (validate(S.step)) { S.step++; render(); } };
+  const btnPrev = g('btn-prev');
+  if (btnPrev) btnPrev.onclick = () => { saveInputs(); S.step--; render(); };
+
+  // Submit
+  const btnSubmit = g('btn-submit');
+  if (btnSubmit) btnSubmit.onclick = () => { saveInputs(); if (validate(7)) submitSurvey(); };
+
+  // New survey
+  const btnNew = g('btn-new');
+  if (btnNew) btnNew.onclick = () => {
+    localStorage.removeItem('kcr2026_survey_submitted');
+    S = { step: 0, lang: 'ko', respondent: '',
+      q1:'', q2:'', q3:'', q4:0, q5:'',
+      q6:'', q7:[], q8:0,
+      q9_1:0, q9_2:0, q9_3:0, q9_4:0, q9_5:0, q10:0,
+      q11:'', q12:'', q13:0, q14:'',
+      q15:0, q16:0, q17:0, q18:0, q19:0, q20:0,
+      q21:0, q22:0, q23:'',
+      q24:'', q25:0, q26:0, q27:'',
+      prize_name:'', prize_phone:'',
+      privacy: false, submitted: false };
+    render();
+  };
+
+  // Step 0: respondent type
+  document.querySelectorAll('[data-resp]').forEach(el => {
+    el.onclick = () => {
+      S.respondent = el.dataset.resp;
+      S.lang = S.respondent === 'foreign' ? 'en' : 'ko';
+      render();
+    };
+  });
+
+  // Q1 chips
+  document.querySelectorAll('[data-q1]').forEach(el => { el.onclick = () => { S.q1 = el.dataset.q1; render(); }; });
+  document.querySelectorAll('[data-q2]').forEach(el => { el.onclick = () => { S.q2 = el.dataset.q2; render(); }; });
+  document.querySelectorAll('[data-q3]').forEach(el => { el.onclick = () => { S.q3 = el.dataset.q3; render(); }; });
+  document.querySelectorAll('[data-q5]').forEach(el => { el.onclick = () => { S.q5 = el.dataset.q5; render(); }; });
+  document.querySelectorAll('[data-q6]').forEach(el => { el.onclick = () => { S.q6 = el.dataset.q6; render(); }; });
+  document.querySelectorAll('[data-q11]').forEach(el => { el.onclick = () => { S.q11 = el.dataset.q11; render(); }; });
+  document.querySelectorAll('[data-q12]').forEach(el => { el.onclick = () => { S.q12 = el.dataset.q12; render(); }; });
+  document.querySelectorAll('[data-q24]').forEach(el => { el.onclick = () => { S.q24 = el.dataset.q24; render(); }; });
+
+  // Q7 checkboxes
+  document.querySelectorAll('[data-q7]').forEach(el => {
+    el.onclick = () => {
+      const v = el.dataset.q7;
+      const idx = S.q7.indexOf(v);
+      if (idx >= 0) S.q7.splice(idx, 1); else S.q7.push(v);
+      render();
+    };
+  });
+
+  // Likert (all)
+  document.querySelectorAll('[data-likert]').forEach(el => {
+    el.onclick = () => { S[el.dataset.likert] = parseInt(el.dataset.val); render(); };
+  });
+
+  // Consent
+  const consent = g('consent-toggle');
+  if (consent) consent.onclick = () => { S.privacy = !S.privacy; render(); };
+
+  // Phone formatting
+  const phoneEl = g('i-prize-phone');
+  if (phoneEl) phoneEl.oninput = () => { phoneEl.value = formatPhone(phoneEl.value); };
+}
+
+// ============================================================
+// Resolve stored keys to Korean labels for spreadsheet
+// ============================================================
+function resolveQ1(key) {
+  const map = { prof:'대학교수', spec:'전문의', fell:'전임의', res:'전공의', nurse:'간호사', rsch:'연구원', stud:'학생', corp:'기업관계자', etc:'기타' };
+  return map[key] || key;
+}
+function resolveQ2(key) {
+  const map = { '1':'1회(처음)', '2':'2~3회', '3':'4~5회', '4':'6~10회', '5':'11회 이상' };
+  return map[key] || key;
+}
+function resolveQ3(key) {
+  const map = { news:'뉴스레터', web:'홈페이지', peer:'동료권유', etc:'기타' };
+  return map[key] || key;
+}
+function resolveQ6(key) {
+  const map = { yes:'예', no:'아니오', none:'몰랐음' };
+  return map[key] || key;
+}
+function resolveQ7(arr) {
+  const map = { screen:'스크린자막', text:'APP텍스트', voice:'APP음성', etc:'기타' };
+  return arr.map(k => map[k]||k).join(', ');
+}
+function resolveQ11(key) {
+  const map = { '5':'매우만족', '4':'만족', '3':'보통', '2':'불만족', '1':'매우불만족' };
+  return map[key] || key;
+}
+function resolveQ12(key) {
+  const map = { screen:'스크린자막', app:'전용APP', voice:'음성번역', both:'병행사용' };
+  return map[key] || key;
+}
+function resolveQ24(key) {
+  const map = { yes:'예', no:'아니오', tbd:'미정' };
+  return map[key] || key;
+}
+
+// ============================================================
+// Submit
+// ============================================================
+async function submitSurvey() {
+  showOverlay(true);
+  const payload = {
+    type: 'survey',
+    timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+    respondent: S.respondent,
+    lang: S.lang,
+    q1: resolveQ1(S.q1),
+    q2: resolveQ2(S.q2),
+    q3: resolveQ3(S.q3),
+    q4: S.q4 || '',
+    q5: S.q5 === 'yes' ? '예' : S.q5 === 'no' ? '아니오' : '',
+    q6: resolveQ6(S.q6),
+    q7: resolveQ7(S.q7),
+    q8: S.q8 || '',
+    q9_1: S.q9_1 || '', q9_2: S.q9_2 || '', q9_3: S.q9_3 || '', q9_4: S.q9_4 || '', q9_5: S.q9_5 || '',
+    q10: S.q10 || '',
+    q11: resolveQ11(S.q11),
+    q12: resolveQ12(S.q12),
+    q13: S.q13 || '',
+    q14: S.q14,
+    q15: S.q15 || '', q16: S.q16 || '', q17: S.q17 || '', q18: S.q18 || '', q19: S.q19 || '', q20: S.q20 || '',
+    q21: S.q21 || '', q22: S.q22 || '',
+    q23: S.q23,
+    q24: resolveQ24(S.q24),
+    q25: S.q25 || '', q26: S.q26 || '',
+    q27: S.q27,
+    prize_name: S.prize_name,
+    prize_phone: S.prize_phone,
+    prize_type: S.respondent === 'domestic' ? '추첨' : '키링수령'
+  };
+
+  try {
+    await fetch(GAS, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    markSubmitted();
+    S.submitted = true;
+    showOverlay(false);
+    render();
+  } catch(e) {
+    showOverlay(false);
+    showToast(t('submit_error'));
+  }
+}
+</script>
+</body>
+</html>
