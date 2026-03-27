@@ -284,7 +284,7 @@ const P = {
 const ROOMS = Object.keys(P);
 const DATES = ["5/14", "5/15", "5/16"];
 const DATE_KO = { "5/14": "5월 14일 (목)", "5/15": "5월 15일 (금)", "5/16": "5월 16일 (토)" };
-const ZONES = ["세션장", "등록 데스크", "프리뷰 데스크"];
+const ZONES = ["세션장", "등록 데스크", "프리뷰 데스크", "TG/연자료"];
 
 // ── 폼 초기값 ─────────────────────────────────────────────
 function emptySessionForm() {
@@ -297,12 +297,14 @@ function emptySessionForm() {
   };
 }
 function emptyRegForm() {
-  return { sys:"", sys_d:"", inquiry:"", inq_name:"", inq_d:"",
+  return { sys:"", sys_d:"", inquiry:"", inq_list:[{name:'',content:''}],
            event:"", event_d:"", etc_d:"" };
 }
 function emptyPreviewForm() {
-  return { sys:"", sys_d:"", speaker:"", spk_name:"", spk_d:"",
-           tg:"", tg_d:"", etc_d:"" };
+  return { sys:"", sys_d:"", speaker:"", spk_list:[{name:'',content:''}], etc_d:"" };
+}
+function emptyTgForm() {
+  return { speaker:"", spk_list:[{name:'',content:''}], etc_d:"" };
 }
 
 // ── 앱 상태 ───────────────────────────────────────────────
@@ -317,6 +319,7 @@ let S = {
   sf: emptySessionForm(),
   rf: emptyRegForm(),
   pf: emptyPreviewForm(),
+  tgf: emptyTgForm(),
   log: [],
   submitted: {},
   editing: false
@@ -404,6 +407,19 @@ function tgl(key, label, f, fieldHTML) {
     '</div>' +
     (f[key]==='이슈' ? '<div class="sub-field">'+fieldHTML+'</div>' : '') +
   '</div>';
+}
+
+// ── 다중 항목 입력 헬퍼 ─────────────────────────────────────
+function multiEntryHTML(list, prefix) {
+  const rows = list.map((e, i) => `
+    <div style="${i<list.length-1?'margin-bottom:10px':''}">
+      ${list.length>1?`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:12px;color:#8E8E93">항목 ${i+1}</span><button type="button" data-rm="${prefix}" data-idx="${i}" style="font-size:11px;color:#FF3B30;background:none;border:0.5px solid #FF3B30;border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit">삭제</button></div>`:''}
+      <label style="font-size:12px;color:#8E8E93;display:block;margin-bottom:4px">이름</label>
+      <input type="text" id="${prefix}-name-${i}" placeholder="이름" value="${(e.name||'').replace(/"/g,'&quot;')}" style="width:100%;padding:10px 12px;border:0.5px solid #E5E5EA;border-radius:8px;font-size:15px;font-family:inherit;background:#fff;color:#1C1C1E;outline:none;margin-bottom:6px;box-sizing:border-box;-webkit-appearance:none">
+      <label style="font-size:12px;color:#8E8E93;display:block;margin-bottom:4px">내용</label>
+      <textarea id="${prefix}-content-${i}" rows="2" placeholder="내용" style="width:100%;padding:10px 12px;border:0.5px solid #E5E5EA;border-radius:8px;font-size:15px;font-family:inherit;background:#fff;color:#1C1C1E;outline:none;resize:none;line-height:1.5;box-sizing:border-box">${e.content||''}</textarea>
+    </div>`).join('');
+  return rows + `<button type="button" data-add="${prefix}" style="width:100%;margin-top:8px;padding:9px;border:0.5px dashed #185FA5;border-radius:8px;color:#185FA5;background:transparent;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">+ 추가</button>`;
 }
 
 // ── 뷰 정의 ───────────────────────────────────────────────
@@ -550,12 +566,7 @@ const VIEWS = {
       </div>
       <div class="card">
         <div class="card-label">참가자 문의</div>
-        ${tgl('inquiry', '', f,
-          '<label>이름</label>' +
-          '<input type="text" id="i-inq-name" placeholder="참가자 이름" value="'+(f.inq_name||'')+'" style="margin-bottom:6px">' +
-          '<label>내용</label>' +
-          '<textarea id="i-inq-d" rows="2" placeholder="문의 내용">'+(f.inq_d||'')+'</textarea>'
-        )}
+        ${tgl('inquiry', '', f, multiEntryHTML(f.inq_list||[{name:'',content:''}], 'inq'))}
       </div>
       <div class="card">
         <div class="card-label">이벤트</div>
@@ -589,20 +600,37 @@ const VIEWS = {
       </div>
       <div class="card">
         <div class="card-label">연자 비고</div>
-        ${tgl('speaker', '', f,
-          '<label>이름</label>' +
-          '<input type="text" id="i-spk-name" placeholder="연자 이름" value="'+(f.spk_name||'')+'" style="margin-bottom:6px">' +
-          '<label>내용</label>' +
-          '<textarea id="i-spk-d" rows="2" placeholder="비고 내용">'+(f.spk_d||'')+'</textarea>'
-        )}
-      </div>
-      <div class="card">
-        <div class="card-label">연자료 및 TG 관련 이슈</div>
-        ${tgl('tg', '', f, '<textarea id="i-tg-d" rows="2" placeholder="이슈 내용">'+(f.tg_d||'')+'</textarea>')}
+        ${tgl('speaker', '', f, multiEntryHTML(f.spk_list||[{name:'',content:''}], 'spk'))}
       </div>
       <div class="card">
         <div class="card-label">기타</div>
         <textarea id="i-etc-d" rows="2" placeholder="기타 내용">${f.etc_d||''}</textarea>
+      </div>
+      ${S.editing
+        ? '<button class="btn-edit" id="btn-submit-desk">수정하기</button>'
+        : '<button class="btn-primary" id="btn-submit-desk">제출하기</button>'}
+      <button class="btn-ghost" id="btn-back-desk2">이전으로</button>
+    </div>`;
+  },
+
+  // ─── TG/연자료 폼 ───
+  tg_form: () => {
+    const f = S.tgf;
+    return `
+    <div class="topbar">
+      <div class="topbar-back" id="btn-back-desk">‹</div>
+      <div class="topbar-title">TG/연자료</div>
+      <span class="badge">${S.date}</span>
+    </div>
+    ${stepsHTML(2, 2)}
+    <div class="content">
+      <div class="card">
+        <div class="card-label">연자 비고</div>
+        ${tgl('speaker', '', f, multiEntryHTML(f.spk_list||[{name:'',content:''}], 'tg-spk'))}
+      </div>
+      <div class="card">
+        <div class="card-label">기타</div>
+        <textarea id="i-tg-etc-d" rows="2" placeholder="기타 내용">${f.etc_d||''}</textarea>
       </div>
       ${S.editing
         ? '<button class="btn-edit" id="btn-submit-desk">수정하기</button>'
@@ -731,6 +759,16 @@ function bindEvents() {
         S.editing = false;
       }
       S.view = 'prev_form';
+    } else if (S.zone === 'TG/연자료') {
+      const dk = 'TG/연자료|'+S.date;
+      if (S.submitted[dk]) {
+        S.tgf = JSON.parse(JSON.stringify(S.submitted[dk]));
+        S.editing = true;
+      } else {
+        S.tgf = emptyTgForm();
+        S.editing = false;
+      }
+      S.view = 'tg_form';
     }
     render();
   });
@@ -776,10 +814,31 @@ function bindEvents() {
     S.sf = emptySessionForm();
     S.rf = emptyRegForm();
     S.pf = emptyPreviewForm();
+    S.tgf = emptyTgForm();
     S.editing = false;
     S.view = 'home';
     render();
   });
+
+  // 다중 항목 추가/삭제
+  document.querySelectorAll('[data-add]').forEach(el =>
+    el.addEventListener('click', () => {
+      saveCurrentForm();
+      const p = el.dataset.add;
+      if (p === 'inq') { S.rf.inq_list.push({name:'',content:''}); }
+      else if (p === 'spk') { S.pf.spk_list.push({name:'',content:''}); }
+      else if (p === 'tg-spk') { S.tgf.spk_list.push({name:'',content:''}); }
+      render();
+    }));
+  document.querySelectorAll('[data-rm]').forEach(el =>
+    el.addEventListener('click', () => {
+      saveCurrentForm();
+      const p = el.dataset.rm, i = parseInt(el.dataset.idx);
+      if (p === 'inq') { S.rf.inq_list.splice(i,1); if(!S.rf.inq_list.length) S.rf.inq_list=[{name:'',content:''}]; }
+      else if (p === 'spk') { S.pf.spk_list.splice(i,1); if(!S.pf.spk_list.length) S.pf.spk_list=[{name:'',content:''}]; }
+      else if (p === 'tg-spk') { S.tgf.spk_list.splice(i,1); if(!S.tgf.spk_list.length) S.tgf.spk_list=[{name:'',content:''}]; }
+      render();
+    }));
 
   // 완료 목록 클릭 → 수정 모드
   document.querySelectorAll('[data-logidx]').forEach(el =>
@@ -804,6 +863,10 @@ function bindEvents() {
         const dk = '프리뷰 데스크|'+S.date;
         if (S.submitted[dk]) S.pf = JSON.parse(JSON.stringify(S.submitted[dk]));
         S.view = 'prev_form';
+      } else if (entry.zone === 'TG/연자료') {
+        const dk = 'TG/연자료|'+S.date;
+        if (S.submitted[dk]) S.tgf = JSON.parse(JSON.stringify(S.submitted[dk]));
+        S.view = 'tg_form';
       }
       render();
     }));
@@ -814,6 +877,7 @@ function getCurrentForm() {
   if (S.view === 'sess_form') return S.sf;
   if (S.view === 'reg_form')  return S.rf;
   if (S.view === 'prev_form') return S.pf;
+  if (S.view === 'tg_form')   return S.tgf;
   return S.sf;
 }
 
@@ -835,18 +899,34 @@ function saveCurrentForm() {
     if (g('i-notes')) f.notes  = g('i-notes').value;
   } else if (S.view === 'reg_form') {
     const f = S.rf;
-    if (g('i-sys-d'))    f.sys_d    = g('i-sys-d').value;
-    if (g('i-inq-name')) f.inq_name = g('i-inq-name').value;
-    if (g('i-inq-d'))    f.inq_d    = g('i-inq-d').value;
-    if (g('i-event-d'))  f.event_d  = g('i-event-d').value;
-    if (g('i-etc-d'))    f.etc_d    = g('i-etc-d').value;
+    if (g('i-sys-d'))   f.sys_d   = g('i-sys-d').value;
+    if (f.inquiry === '이슈') {
+      f.inq_list = (f.inq_list||[{name:'',content:''}]).map((e,i) => ({
+        name: (g('inq-name-'+i)||{value:e.name||''}).value,
+        content: (g('inq-content-'+i)||{value:e.content||''}).value
+      }));
+    }
+    if (g('i-event-d')) f.event_d = g('i-event-d').value;
+    if (g('i-etc-d'))   f.etc_d   = g('i-etc-d').value;
   } else if (S.view === 'prev_form') {
     const f = S.pf;
-    if (g('i-sys-d'))    f.sys_d    = g('i-sys-d').value;
-    if (g('i-spk-name')) f.spk_name = g('i-spk-name').value;
-    if (g('i-spk-d'))    f.spk_d    = g('i-spk-d').value;
-    if (g('i-tg-d'))     f.tg_d     = g('i-tg-d').value;
-    if (g('i-etc-d'))    f.etc_d    = g('i-etc-d').value;
+    if (g('i-sys-d'))   f.sys_d   = g('i-sys-d').value;
+    if (f.speaker === '이슈') {
+      f.spk_list = (f.spk_list||[{name:'',content:''}]).map((e,i) => ({
+        name: (g('spk-name-'+i)||{value:e.name||''}).value,
+        content: (g('spk-content-'+i)||{value:e.content||''}).value
+      }));
+    }
+    if (g('i-etc-d'))   f.etc_d   = g('i-etc-d').value;
+  } else if (S.view === 'tg_form') {
+    const f = S.tgf;
+    if (f.speaker === '이슈') {
+      f.spk_list = (f.spk_list||[{name:'',content:''}]).map((e,i) => ({
+        name: (g('tg-spk-name-'+i)||{value:e.name||''}).value,
+        content: (g('tg-spk-content-'+i)||{value:e.content||''}).value
+      }));
+    }
+    if (g('i-tg-etc-d')) f.etc_d = g('i-tg-etc-d').value;
   }
 }
 
@@ -914,29 +994,39 @@ async function submitSession() {
 // ── 데스크 제출 ───────────────────────────────────────────
 async function submitDesk() {
   saveCurrentForm();
-  const isReg = S.zone === '등록 데스크';
-  const f = isReg ? S.rf : S.pf;
+  const zone = S.zone;
   let hasIssue, payload;
 
-  if (isReg) {
+  if (zone === '등록 데스크') {
+    const f = S.rf;
     hasIssue = f.sys==='이슈' || f.inquiry==='이슈' || f.event==='이슈';
     payload = {
       timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
-      staff: S.staff, zone: '등록 데스크', date: S.date,
+      staff: S.staff, zone, date: S.date,
       sys: f.sys, sys_d: f.sys_d,
-      inquiry: f.inquiry, inq_name: f.inq_name, inq_d: f.inq_d,
+      inquiry: f.inquiry, inq_list: JSON.stringify(f.inq_list||[]),
       event: f.event, event_d: f.event_d,
       etc_d: f.etc_d,
       edit: S.editing
     };
-  } else {
-    hasIssue = f.sys==='이슈' || f.speaker==='이슈' || f.tg==='이슈';
+  } else if (zone === '프리뷰 데스크') {
+    const f = S.pf;
+    hasIssue = f.sys==='이슈' || f.speaker==='이슈';
     payload = {
       timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
-      staff: S.staff, zone: '프리뷰 데스크', date: S.date,
+      staff: S.staff, zone, date: S.date,
       sys: f.sys, sys_d: f.sys_d,
-      speaker: f.speaker, spk_name: f.spk_name, spk_d: f.spk_d,
-      tg: f.tg, tg_d: f.tg_d,
+      speaker: f.speaker, spk_list: JSON.stringify(f.spk_list||[]),
+      etc_d: f.etc_d,
+      edit: S.editing
+    };
+  } else {
+    const f = S.tgf;
+    hasIssue = f.speaker==='이슈';
+    payload = {
+      timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+      staff: S.staff, zone, date: S.date,
+      speaker: f.speaker, spk_list: JSON.stringify(f.spk_list||[]),
       etc_d: f.etc_d,
       edit: S.editing
     };
@@ -950,8 +1040,9 @@ async function submitDesk() {
       body: JSON.stringify(payload)
     });
 
-    const dk = S.zone+'|'+S.date;
-    S.submitted[dk] = JSON.parse(JSON.stringify(f));
+    const dk = zone+'|'+S.date;
+    const curF = zone==='등록 데스크' ? S.rf : zone==='프리뷰 데스크' ? S.pf : S.tgf;
+    S.submitted[dk] = JSON.parse(JSON.stringify(curF));
 
     if (S.editing) {
       const ei = S.log.findIndex(l => l.zone===S.zone && l.date===S.date);
