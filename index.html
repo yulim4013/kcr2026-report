@@ -179,7 +179,7 @@
 
 <!-- ── 메인 앱 ── -->
 <div id="main-app" class="phone" style="display:none">
-  <img src="header.png" alt="KCR 2026" style="width:100%;display:block;">
+  <div style="padding:12px 16px 0"><img src="header.png" alt="KCR 2026" style="width:100%;display:block;border-radius:12px;"></div>
   <div id="app"></div>
 </div>
 
@@ -446,8 +446,7 @@ const VIEWS = {
     const totalSteps = S.zone === '세션장' ? 3 : (S.zone ? 2 : 2);
     return `
     <div class="topbar">
-      <div class="topbar-title">세션 리포트</div>
-      <span class="badge">KCR 2026</span>
+      <div class="topbar-title">KCR 2026 Report</div>
     </div>
     ${stepsHTML(totalSteps, 1)}
     <div class="content">
