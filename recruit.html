@@ -723,15 +723,15 @@ function bindEvents() {
 
   // ── Step 1: 성별 chip ──
   document.querySelectorAll('[data-gender]').forEach(el => {
-    el.onclick = () => { S.gender = el.dataset.gender; render(); };
+    el.onclick = () => { saveInputs(); S.gender = el.dataset.gender; render(); };
   });
 
   // ── Step 2: 학력 chip ──
   document.querySelectorAll('[data-edu]').forEach(el => {
-    el.onclick = () => { S.education = el.dataset.edu; render(); };
+    el.onclick = () => { saveInputs(); S.education = el.dataset.edu; render(); };
   });
   document.querySelectorAll('[data-enroll]').forEach(el => {
-    el.onclick = () => { S.enrollment = el.dataset.enroll; render(); };
+    el.onclick = () => { saveInputs(); S.enrollment = el.dataset.enroll; render(); };
   });
   // 자기소개 글자수 카운터
   const introEl = g('i-intro');
@@ -757,7 +757,7 @@ function bindEvents() {
   });
   // 영어 chip
   document.querySelectorAll('[data-eng]').forEach(el => {
-    el.onclick = () => { S.english = el.dataset.eng; render(); };
+    el.onclick = () => { saveInputs(); S.english = el.dataset.eng; render(); };
   });
   // 경험 추가
   const btnAddExp = g('btn-add-exp');
