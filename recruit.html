@@ -423,7 +423,7 @@ const VIEWS = {
         </div>
         <div class="field">
           <label>생년월일 <span class="req">*</span></label>
-          <input id="i-birth" type="date" value="${S.birth}" min="1970-01-01" max="2010-12-31">
+          <input id="i-birth" type="date" value="${S.birth || '1995-01-01'}" min="1970-01-01" max="2010-12-31">
         </div>
         <div class="field">
           <label>휴대전화 <span class="req">*</span></label>
