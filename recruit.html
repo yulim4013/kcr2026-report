@@ -111,6 +111,42 @@
   .review-label { color: #8E8E93; min-width: 80px; flex-shrink: 0; }
   .review-value { color: #1C1C1E; flex: 1; word-break: break-all; }
 
+  /* ── year picker ── */
+  .year-select-btn {
+    width: 100%; padding: 10px 12px; border: 0.5px solid #E5E5EA; border-radius: 8px;
+    font-size: 15px; font-family: inherit; background: #F9F9F9; color: #8E8E93;
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    text-align: left; -webkit-appearance: none; transition: border-color .15s;
+  }
+  .year-select-btn.filled { color: #1C1C1E; }
+  .year-select-btn:focus { border-color: #185FA5; background: #fff; outline: none; }
+  .year-arrow { font-size: 11px; color: #C7C7CC; margin-left: 6px; flex-shrink: 0; }
+  .year-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .year-sheet {
+    background: #fff; border-radius: 16px 16px 0 0; width: 100%; max-width: 430px;
+    max-height: 55vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .year-sheet-header {
+    padding: 14px 16px; border-bottom: 0.5px solid #E5E5EA;
+    display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+  }
+  .year-sheet-header span { font-size: 15px; font-weight: 600; color: #1C1C1E; }
+  .year-sheet-header button {
+    font-size: 14px; color: #185FA5; font-weight: 600; background: none; border: none;
+    cursor: pointer; font-family: inherit; padding: 4px 8px;
+  }
+  .year-list { overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+  .year-item {
+    padding: 14px 0; font-size: 17px; text-align: center; cursor: pointer;
+    color: #1C1C1E; border-bottom: 0.5px solid #F2F2F7;
+  }
+  .year-item:last-child { border-bottom: none; }
+  .year-item.sel { color: #185FA5; font-weight: 700; background: #F0F6FF; }
+  .year-item:active { background: #F2F2F7; }
+
   /* ── consent ── */
   .consent-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px;
                  background: #F9F9F9; border-radius: 8px; cursor: pointer; }
@@ -423,14 +459,24 @@ const VIEWS = {
         </div>
         <div class="field">
           <label>출생연도 <span class="req">*</span></label>
-          <select id="i-birth">
-            <option value="">연도 선택</option>
-            ${Array.from({length: 39}, (_, i) => {
-              const y = 1970 + i;
-              const sel = (S.birth ? S.birth == y : y === 1995) ? 'selected' : '';
-              return `<option value="${y}" ${sel}>${y}년</option>`;
-            }).join('')}
-          </select>
+          <button type="button" class="year-select-btn ${S.birth ? 'filled' : ''}" id="year-btn" onclick="openYearPicker()">
+            <span id="year-display">${S.birth ? S.birth + '년' : '연도 선택'}</span>
+            <span class="year-arrow">▾</span>
+          </button>
+          <div id="year-overlay" class="year-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+            <div class="year-sheet">
+              <div class="year-sheet-header">
+                <span>출생연도 선택</span>
+                <button type="button" onclick="document.getElementById('year-overlay').style.display='none'">완료</button>
+              </div>
+              <div class="year-list" id="year-list">
+                ${Array.from({length: 39}, (_, i) => {
+                  const y = 1970 + i;
+                  return `<div class="year-item${S.birth == y ? ' sel' : ''}" data-year="${y}" onclick="selectYear(${y})">${y}년</div>`;
+                }).join('')}
+              </div>
+            </div>
+          </div>
         </div>
         <div class="field">
           <label>휴대전화 <span class="req">*</span></label>
@@ -726,6 +772,33 @@ function bindEvents() {
       privacy: false, submitted: false
     };
     render();
+  };
+
+  // ── Step 1: 연도 picker ──
+  window.openYearPicker = function() {
+    const overlay = document.getElementById('year-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    const list = document.getElementById('year-list');
+    if (!list) return;
+    const targetYear = S.birth || '1995';
+    const target = list.querySelector(`[data-year="${targetYear}"]`);
+    if (target) {
+      setTimeout(() => {
+        list.scrollTop = target.offsetTop - list.clientHeight / 2 + target.clientHeight / 2;
+      }, 30);
+    }
+  };
+  window.selectYear = function(year) {
+    S.birth = String(year);
+    const display = document.getElementById('year-display');
+    const btn = document.getElementById('year-btn');
+    if (display) display.textContent = year + '년';
+    if (btn) btn.classList.add('filled');
+    document.querySelectorAll('.year-item').forEach(el => {
+      el.classList.toggle('sel', el.dataset.year == year);
+    });
+    document.getElementById('year-overlay').style.display = 'none';
   };
 
   // ── Step 1: 성별 chip ──
