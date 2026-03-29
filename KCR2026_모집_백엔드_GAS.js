@@ -30,20 +30,32 @@ const HEADERS     = [
   "출근_4/13", "퇴근_4/13",
   "출근_5/14", "퇴근_5/14",
   "출근_5/15", "퇴근_5/15",
-  "출근_5/16", "퇴근_5/16"
+  "출근_5/16", "퇴근_5/16",
+  "서류제출"
 ];
 
-// ── GET 요청: 연결 테스트 ─────────────────────────────────────
+// ── GET 요청: 연결 테스트 / 합격 여부 확인 ───────────────────
 function doGet(e) {
+  if (e.parameter && e.parameter.action === 'checkApproval') {
+    return checkApprovalStatus_(e.parameter.email || '');
+  }
   return ContentService
     .createTextOutput(JSON.stringify({ status: "ok", message: "KCR2026 운영요원 모집 API 정상 작동 중" }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ── POST 요청: 지원서 접수 ────────────────────────────────────
+// ── POST 요청: 지원서 접수 / 서류 제출 ───────────────────────
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
+
+    // 서류 제출 처리
+    if (data.type === 'docs') {
+      saveDocuments_(data);
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: "ok" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
 
     // 중복 체크
     if (checkDuplicate_(data.email)) {
@@ -111,7 +123,8 @@ function saveApplication_(data) {
     "", "",                   // 출근_4/13, 퇴근_4/13
     "", "",                   // 출근_5/14, 퇴근_5/14
     "", "",                   // 출근_5/15, 퇴근_5/15
-    "", ""                    // 출근_5/16, 퇴근_5/16
+    "", "",                   // 출근_5/16, 퇴근_5/16
+    ""                        // 서류제출
   ];
 
   const lastRow = sheet.getLastRow() + 1;
@@ -353,6 +366,11 @@ function sendStatusChangeEmail_(email, name, status) {
         `KCR 2026 운영요원 모집에 지원해주셔서 감사드립니다.\n\n` +
         `서류 검토 결과, ${name || ""}님을 KCR 2026 운영요원으로 선발하게 되었습니다.\n` +
         `함께하게 되어 정말 기쁩니다!\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `📎 서류 제출 안내\n` +
+        `급여 지급을 위해 아래 링크에서 통장 사본과 주민등록증 사본을 제출해주세요.\n\n` +
+        `👉 서류 제출하기: https://yulim4013.github.io/kcr2026-report/docs.html\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
         `오리엔테이션 일정 및 상세 안내는 추후 별도 이메일로 안내드리겠습니다.\n\n` +
         `KCR 2026 사무국 드림`;
       break;
@@ -384,4 +402,116 @@ function setRecruitTriggers() {
     .create();
 
   Logger.log("트리거 등록 완료: onStatusChange (onEdit)");
+}
+
+// ── 합격 여부 확인 (서류 제출 페이지용) ──────────────────────
+function checkApprovalStatus_(email) {
+  if (!email) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "error", message: "이메일 없음" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet || sheet.getLastRow() < 2) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "not_found" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const data      = sheet.getDataRange().getValues();
+  const emailIdx  = HEADERS.indexOf("이메일");
+  const nameIdx   = HEADERS.indexOf("이름");
+  const statusIdx = HEADERS.indexOf("상태");
+  const docsIdx   = HEADERS.indexOf("서류제출");
+
+  for (let i = 1; i < data.length; i++) {
+    if (!data[i][emailIdx]) continue;
+    if (data[i][emailIdx].toString().toLowerCase() !== email.toLowerCase()) continue;
+
+    const status     = data[i][statusIdx];
+    const docsStatus = docsIdx >= 0 ? (data[i][docsIdx] || '') : '';
+    const name       = data[i][nameIdx];
+
+    if (status === "승인") {
+      if (docsStatus && docsStatus.toString().includes("제출완료")) {
+        return ContentService
+          .createTextOutput(JSON.stringify({ status: "already_submitted", name }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: "approved", name }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } else {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: "not_approved", currentStatus: status }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "not_found" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ── 서류 파일 Drive 저장 ──────────────────────────────────────
+function saveDocuments_(data) {
+  // 1. 부모 폴더 확인/생성
+  const parentName = "KCR2026_운영요원_서류";
+  let parentFolder;
+  const pFolders = DriveApp.getFoldersByName(parentName);
+  parentFolder = pFolders.hasNext() ? pFolders.next() : DriveApp.createFolder(parentName);
+
+  // 2. 지원자 개인 폴더 확인/생성
+  const subName    = (data.name || "unknown") + "_" + (data.email || "");
+  let subFolder;
+  const sFolders = parentFolder.getFoldersByName(subName);
+  subFolder = sFolders.hasNext() ? sFolders.next() : parentFolder.createFolder(subName);
+
+  // 3. MIME → 확장자
+  function getExt(mime) {
+    if ((mime || "").includes("pdf"))  return ".pdf";
+    if ((mime || "").includes("png"))  return ".png";
+    if ((mime || "").includes("jpeg") || (mime || "").includes("jpg")) return ".jpg";
+    return "";
+  }
+
+  // 4. 통장 사본 저장
+  if (data.bankFile && data.bankFile.data) {
+    const blob = Utilities.newBlob(
+      Utilities.base64Decode(data.bankFile.data),
+      data.bankFile.type || "application/octet-stream",
+      "통장사본_" + (data.name || "") + getExt(data.bankFile.type)
+    );
+    subFolder.createFile(blob);
+  }
+
+  // 5. 주민등록증 사본 저장
+  if (data.idFile && data.idFile.data) {
+    const blob = Utilities.newBlob(
+      Utilities.base64Decode(data.idFile.data),
+      data.idFile.type || "application/octet-stream",
+      "주민등록증_" + (data.name || "") + getExt(data.idFile.type)
+    );
+    subFolder.createFile(blob);
+  }
+
+  // 6. 시트 서류제출 열 업데이트
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) return;
+
+  const sheetData = sheet.getDataRange().getValues();
+  const emailIdx  = HEADERS.indexOf("이메일");
+  const docsIdx   = HEADERS.indexOf("서류제출");
+  if (docsIdx < 0) return;
+
+  for (let i = 1; i < sheetData.length; i++) {
+    if (!sheetData[i][emailIdx]) continue;
+    if (sheetData[i][emailIdx].toString().toLowerCase() !== (data.email || "").toLowerCase()) continue;
+    sheet.getRange(i + 1, docsIdx + 1)
+      .setValue(Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd HH:mm") + " 제출완료");
+    break;
+  }
 }

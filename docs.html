@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KCR 2026 · 서류 제출</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif;
+      background: #F2F2F7;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 430px; margin: 0 auto; padding-bottom: 48px; }
+
+    /* ── top bar ── */
+    .top-bar {
+      background: #185FA5;
+      color: #fff;
+      text-align: center;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      border-radius: 0 0 14px 14px;
+      margin: 0 16px;
+    }
+
+    /* ── key visual ── */
+    .kv-wrap { margin: 12px 16px 0; overflow: hidden; border-radius: 12px; }
+    .kv-wrap img { width: 100%; display: block; }
+
+    /* ── card ── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px 16px;
+      margin: 12px 16px 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .card-title { font-size: 17px; font-weight: 700; color: #1C1C1E; margin-bottom: 8px; }
+    .card-sub { font-size: 13px; color: #636366; line-height: 1.6; margin-bottom: 20px; }
+
+    /* ── form ── */
+    .field-label { font-size: 13px; color: #8E8E93; display: block; margin-bottom: 6px; }
+    input[type=email] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #E5E5EA;
+      border-radius: 10px;
+      font-size: 16px;
+      color: #1C1C1E;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input[type=email]:focus { border-color: #185FA5; }
+
+    /* ── file box ── */
+    .file-row { margin-bottom: 14px; }
+    .file-box {
+      border: 2px dashed #E5E5EA;
+      border-radius: 12px;
+      padding: 18px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .file-box:hover { border-color: #185FA5; }
+    .file-box.has-file { border-color: #34C759; background: #F0FFF4; }
+    .file-box .fi { font-size: 26px; margin-bottom: 6px; }
+    .file-box .fl { font-size: 14px; font-weight: 600; color: #185FA5; }
+    .file-box.has-file .fl { color: #34C759; }
+    .file-box .fh { font-size: 12px; color: #8E8E93; margin-top: 3px; }
+    .file-box .fn { font-size: 12px; color: #1C1C1E; margin-top: 6px; font-weight: 500;
+                    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 8px; }
+    .file-box input[type=file] { display: none; }
+
+    /* ── button ── */
+    .btn {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 16px 16px 0;
+      padding: 16px;
+      background: #185FA5;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      letter-spacing: -0.3px;
+      transition: opacity .2s;
+    }
+    .btn:active { opacity: .8; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── result screens ── */
+    .result-wrap {
+      text-align: center;
+      padding: 48px 24px 24px;
+      margin: 12px 16px 0;
+    }
+    .result-icon { font-size: 60px; margin-bottom: 16px; }
+    .result-title { font-size: 21px; font-weight: 800; color: #1C1C1E; margin-bottom: 10px; }
+    .result-msg { font-size: 15px; color: #636366; line-height: 1.65; }
+    .result-msg a { color: #185FA5; text-decoration: none; }
+
+    /* ── overlay / spinner ── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.4); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .overlay.show { display: flex; }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 4px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── toast ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1C1C1E; color: #fff;
+      padding: 12px 20px; border-radius: 20px;
+      font-size: 14px; opacity: 0;
+      transition: all .3s; pointer-events: none;
+      white-space: nowrap; z-index: 200;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-bar">KCR 2026 · 서류 제출</div>
+  <div class="kv-wrap"><img src="kv-header.png" alt="KCR 2026"></div>
+  <div id="app"></div>
+</div>
+<div id="overlay" class="overlay"><div class="spinner"></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+// ── GAS URL (recruit.html 과 동일) ──
+const GAS_URL = "https://script.google.com/macros/s/AKfycbx03VP97f5LoHGh0tVgyinjbXBqMB7XFq3wYSVqN71XUBLrlbytyWMy6aDx-yPwnTS9/exec";
+
+// ── 상태 ──
+let S = { view: 'verify', email: '', name: '', bankFile: null, idFile: null };
+
+// ── 유틸 ──
+const g = id => document.getElementById(id);
+function showOverlay(on) { g('overlay').classList.toggle('show', on); }
+function showToast(msg) {
+  const t = g('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── 렌더링 ──
+function render() {
+  const app = g('app');
+
+  if (S.view === 'verify') {
+    app.innerHTML = `
+      <div class="card">
+        <div class="card-title">본인 확인</div>
+        <div class="card-sub">
+          운영요원 지원 시 사용하신 이메일 주소를 입력해주세요.<br>
+          합격자에 한해 서류 제출이 가능합니다.
+        </div>
+        <label class="field-label">이메일 주소</label>
+        <input type="email" id="email-input" placeholder="example@email.com" autocomplete="email">
+      </div>
+      <button class="btn" id="verify-btn">확인하기</button>
+    `;
+    bindVerify();
+  }
+
+  else if (S.view === 'upload') {
+    app.innerHTML = `
+      <div class="card">
+        <div class="card-title">🎉 ${S.name}님, 합격을 축하드립니다!</div>
+        <div class="card-sub">
+          급여 지급을 위해 아래 두 가지 서류를 제출해주세요.<br>
+          지원 형식: JPG, PNG, PDF &nbsp;|&nbsp; 파일당 최대 4MB
+        </div>
+
+        <div class="file-row">
+          <label class="field-label">통장 사본</label>
+          <div class="file-box" id="bank-box" onclick="g('bank-input').click()">
+            <div class="fi">🏦</div>
+            <div class="fl" id="bank-label">파일 선택</div>
+            <div class="fh">본인 명의 통장 앞면</div>
+            <div class="fn" id="bank-name"></div>
+            <input type="file" id="bank-input" accept=".jpg,.jpeg,.png,.pdf">
+          </div>
+        </div>
+
+        <div class="file-row">
+          <label class="field-label">주민등록증 사본</label>
+          <div class="file-box" id="id-box" onclick="g('id-input').click()">
+            <div class="fi">🪪</div>
+            <div class="fl" id="id-label">파일 선택</div>
+            <div class="fh">주민등록증 앞면</div>
+            <div class="fn" id="id-name"></div>
+            <input type="file" id="id-input" accept=".jpg,.jpeg,.png,.pdf">
+          </div>
+        </div>
+      </div>
+      <button class="btn" id="submit-btn">서류 제출하기</button>
+    `;
+    bindUpload();
+  }
+
+  else if (S.view === 'done') {
+    app.innerHTML = `
+      <div class="result-wrap">
+        <div class="result-icon">✅</div>
+        <div class="result-title">제출 완료</div>
+        <div class="result-msg">
+          서류를 성공적으로 제출하였습니다.<br>
+          확인 후 추가 안내를 드리겠습니다.<br><br>
+          KCR 2026 사무국 드림
+        </div>
+      </div>
+    `;
+  }
+
+  else if (S.view === 'already') {
+    app.innerHTML = `
+      <div class="result-wrap">
+        <div class="result-icon">📋</div>
+        <div class="result-title">이미 제출하셨습니다</div>
+        <div class="result-msg">
+          해당 이메일로 서류가 이미 제출되었습니다.<br>
+          문의사항은 아래로 연락해주세요.<br><br>
+          <a href="mailto:info@kcr2026.com">📧 info@kcr2026.com</a>
+        </div>
+      </div>
+    `;
+  }
+
+  else if (S.view === 'error') {
+    app.innerHTML = `
+      <div class="result-wrap">
+        <div class="result-icon">❌</div>
+        <div class="result-title">제출 대상이 아닙니다</div>
+        <div class="result-msg">
+          입력하신 이메일로 합격 처리된 내역이 없습니다.<br>
+          이메일을 다시 확인하시거나 사무국으로 문의해주세요.<br><br>
+          <a href="mailto:info@kcr2026.com">📧 info@kcr2026.com</a>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ── 이메일 확인 ──
+function bindVerify() {
+  const input = g('email-input');
+  const btn   = g('verify-btn');
+
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click(); });
+
+  btn.addEventListener('click', async () => {
+    const email = input.value.trim();
+    if (!email || !email.includes('@')) {
+      showToast('올바른 이메일 주소를 입력해주세요');
+      return;
+    }
+    S.email = email;
+    showOverlay(true);
+
+    try {
+      const res  = await fetch(`${GAS_URL}?action=checkApproval&email=${encodeURIComponent(email)}`);
+      const json = await res.json();
+      showOverlay(false);
+
+      if (json.status === 'approved') {
+        S.name = json.name || '';
+        S.view = 'upload';
+      } else if (json.status === 'already_submitted') {
+        S.view = 'already';
+      } else {
+        S.view = 'error';
+      }
+      render();
+    } catch (err) {
+      showOverlay(false);
+      showToast('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
+  });
+}
+
+// ── 파일 → base64 ──
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── 파일 업로드 ──
+function bindUpload() {
+  function attachFile(inputId, boxId, labelId, nameId, key) {
+    g(inputId).addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      if (file.size > 4 * 1024 * 1024) {
+        showToast('파일 크기는 4MB 이하여야 합니다');
+        this.value = '';
+        return;
+      }
+      S[key] = file;
+      g(labelId).textContent = '파일 선택됨';
+      g(nameId).textContent  = file.name;
+      g(boxId).classList.add('has-file');
+    });
+  }
+
+  attachFile('bank-input', 'bank-box', 'bank-label', 'bank-name', 'bankFile');
+  attachFile('id-input',   'id-box',   'id-label',   'id-name',   'idFile');
+
+  g('submit-btn').addEventListener('click', async () => {
+    if (!S.bankFile) { showToast('통장 사본을 첨부해주세요'); return; }
+    if (!S.idFile)   { showToast('주민등록증 사본을 첨부해주세요'); return; }
+
+    showOverlay(true);
+    try {
+      const [bankB64, idB64] = await Promise.all([
+        fileToBase64(S.bankFile),
+        fileToBase64(S.idFile)
+      ]);
+
+      const payload = {
+        type:  'docs',
+        email: S.email,
+        name:  S.name,
+        bankFile: { name: S.bankFile.name, type: S.bankFile.type, data: bankB64 },
+        idFile:   { name: S.idFile.name,   type: S.idFile.type,   data: idB64  }
+      };
+
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      });
+
+      showOverlay(false);
+      S.view = 'done';
+      render();
+    } catch (err) {
+      showOverlay(false);
+      showToast('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
+  });
+}
+
+render();
+</script>
+</body>
+</html>
