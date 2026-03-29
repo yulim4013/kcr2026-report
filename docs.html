@@ -242,6 +242,7 @@ function render() {
           <a href="mailto:info@kcr2026.com">📧 info@kcr2026.com</a>
         </div>
       </div>
+      <button class="btn" onclick="goBack()">이메일 다시 입력</button>
     `;
   }
 
@@ -256,8 +257,15 @@ function render() {
           <a href="mailto:info@kcr2026.com">📧 info@kcr2026.com</a>
         </div>
       </div>
+      <button class="btn" onclick="goBack()">이메일 다시 입력</button>
     `;
   }
+}
+
+function goBack() {
+  S.email = '';
+  S.view = 'verify';
+  render();
 }
 
 // ── 이메일 확인 ──
