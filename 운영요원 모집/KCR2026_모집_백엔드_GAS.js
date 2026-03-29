@@ -359,21 +359,33 @@ function sendStatusChangeEmail_(email, name, status) {
         `조금만 기다려 주시면 감사하겠습니다.\n\n` +
         `KCR 2026 사무국 드림`;
       break;
-    case "승인":
+    case "승인": {
       subject = "[KCR2026] 운영요원 선발 안내";
+      const docsUrl = "https://yulim4013.github.io/kcr2026-report/docs.html";
       body =
         `${name || ""}님, 안녕하세요.\n\n` +
         `KCR 2026 운영요원 모집에 지원해주셔서 감사드립니다.\n\n` +
         `서류 검토 결과, ${name || ""}님을 KCR 2026 운영요원으로 선발하게 되었습니다.\n` +
         `함께하게 되어 정말 기쁩니다!\n\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `📎 서류 제출 안내\n` +
-        `급여 지급을 위해 아래 링크에서 통장 사본과 주민등록증 사본을 제출해주세요.\n\n` +
-        `👉 서류 제출하기: https://yulim4013.github.io/kcr2026-report/docs.html\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `[ 서류 제출 안내 ]\n` +
+        `수당 지급을 위해 아래 링크에서 통장 사본과 주민등록증 사본을 제출해주세요.\n` +
+        `${docsUrl}\n\n` +
         `오리엔테이션 일정 및 상세 안내는 추후 별도 이메일로 안내드리겠습니다.\n\n` +
         `KCR 2026 사무국 드림`;
-      break;
+      const htmlBody =
+        `<p>${name || ""}님, 안녕하세요.</p>` +
+        `<p>KCR 2026 운영요원 모집에 지원해주셔서 감사드립니다.</p>` +
+        `<p>서류 검토 결과, <b>${name || ""}님</b>을 KCR 2026 운영요원으로 선발하게 되었습니다.<br>함께하게 되어 정말 기쁩니다!</p>` +
+        `<hr>` +
+        `<p><b>서류 제출 안내</b></p>` +
+        `<p>수당 지급을 위해 아래 링크에서 통장 사본과 주민등록증 사본을 제출해주세요.</p>` +
+        `<p><a href="${docsUrl}" style="background:#185FA5;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block;">서류 제출하기</a></p>` +
+        `<hr>` +
+        `<p>오리엔테이션 일정 및 상세 안내는 추후 별도 이메일로 안내드리겠습니다.</p>` +
+        `<p>KCR 2026 사무국 드림</p>`;
+      GmailApp.sendEmail(email, subject, body, { name: "KCR2026 운영요원 모집", htmlBody: htmlBody });
+      return;
+    }
     case "거절":
       subject = "[KCR2026] 운영요원 지원 결과 안내";
       body =
