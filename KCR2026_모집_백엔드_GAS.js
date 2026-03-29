@@ -390,6 +390,58 @@ function sendStatusChangeEmail_(email, name, status) {
   GmailApp.sendEmail(email, subject, body, { name: "KCR2026 운영요원 모집" });
 }
 
+// ── 기존 시트에 누락된 컬럼 추가 (1회 실행) ──────────────────
+function addMissingColumns() {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) { Logger.log("시트 없음 — 지원서가 한 건도 없으면 시트가 없습니다."); return; }
+
+  const currentHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  // 헤더 스타일 적용 헬퍼
+  function styleHeader(col) {
+    sheet.getRange(1, col)
+      .setBackground("#185FA5").setFontColor("#FFFFFF").setFontWeight("bold");
+  }
+
+  // 1. "4/13참여" 삽입 (희망업무 바로 다음)
+  if (!currentHeaders.includes("4/13참여")) {
+    const rolesIdx = currentHeaders.indexOf("희망업무");
+    if (rolesIdx >= 0) {
+      const insertCol = rolesIdx + 2; // 1-indexed, 희망업무 다음
+      sheet.insertColumnAfter(rolesIdx + 1);
+      sheet.getRange(1, insertCol).setValue("4/13참여");
+      styleHeader(insertCol);
+      currentHeaders.splice(rolesIdx + 1, 0, "4/13참여");
+      Logger.log("추가: 4/13참여");
+    }
+  }
+
+  // 2. 끝에 누락된 관리 컬럼 추가
+  const toAppend = [
+    "최종배정파트",
+    "출근_4/13", "퇴근_4/13",
+    "출근_5/14", "퇴근_5/14",
+    "출근_5/15", "퇴근_5/15",
+    "출근_5/16", "퇴근_5/16",
+    "서류제출"
+  ];
+
+  let lastCol = sheet.getLastColumn();
+  toAppend.forEach(header => {
+    if (!currentHeaders.includes(header)) {
+      lastCol++;
+      sheet.getRange(1, lastCol).setValue(header);
+      styleHeader(lastCol);
+      currentHeaders.push(header);
+      Logger.log("추가: " + header);
+    }
+  });
+
+  sheet.autoResizeColumns(1, sheet.getLastColumn());
+  Logger.log("완료! 현재 헤더: " + currentHeaders.join(", "));
+}
+
 // ── 트리거 등록 (최초 1회 실행) ────────────────────────────────
 function setRecruitTriggers() {
   // 기존 트리거 제거
