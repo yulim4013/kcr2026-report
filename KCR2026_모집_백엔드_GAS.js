@@ -36,7 +36,7 @@ const HEADERS     = [
 
 // ── GET 요청: 연결 테스트 / 합격 여부 확인 ───────────────────
 function doGet(e) {
-  if (e.parameter && e.parameter.action === 'checkApproval') {
+  if (e && e.parameter && e.parameter.action === 'checkApproval') {
     return checkApprovalStatus_(e.parameter.email || '');
   }
   return ContentService
