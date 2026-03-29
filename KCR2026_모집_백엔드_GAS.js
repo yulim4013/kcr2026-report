@@ -390,6 +390,39 @@ function sendStatusChangeEmail_(email, name, status) {
   GmailApp.sendEmail(email, subject, body, { name: "KCR2026 운영요원 모집" });
 }
 
+// ── doPost 테스트 (에디터에서 직접 실행) ─────────────────────
+function testDoPost() {
+  const e = {
+    postData: {
+      contents: JSON.stringify({
+        type: 'recruit',
+        timestamp: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+        name: '테스트',
+        gender: '남',
+        birth: '1995',
+        phone: '010-0000-0000',
+        email: 'test_' + Date.now() + '@test.com',
+        address: '서울시 강남구 역삼동',
+        education: '대학교 졸업',
+        enrollment: '졸업',
+        major: '테스트학과',
+        intro: '테스트 자기소개입니다.',
+        experience: '무',
+        exp1: '', exp2: '', exp3: '',
+        english: '중',
+        other_lang: '',
+        roles: '세션장',
+        avail_13: '불가',
+        avail_14: '전일',
+        avail_15: '전일',
+        avail_16: '전일'
+      })
+    }
+  };
+  const result = doPost(e);
+  Logger.log(result.getContent());
+}
+
 // ── 기존 시트에 누락된 컬럼 추가 (1회 실행) ──────────────────
 function addMissingColumns() {
   const ss    = SpreadsheetApp.getActiveSpreadsheet();
