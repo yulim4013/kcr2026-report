@@ -258,6 +258,7 @@ const DATE_INFO = {
   "5/16": "출근 06:30–07:30\n퇴근 15:00–17:00"
 };
 const TIME_SLOTS = ["가능", "불가"];
+const DEADLINE = new Date("2026-04-21T23:59:59+09:00"); // 접수 마감: 4월 21일 23:59 KST
 const EDU_OPTIONS = ["고등학교 졸업", "대학교 재학", "대학교 졸업", "대학원 재학", "대학원 졸업"];
 const ENROLL_OPTIONS = ["재학", "휴학", "졸업", "해당없음"];
 const ENG_OPTIONS = ["상", "중", "하"];
@@ -332,6 +333,12 @@ function markSubmitted() {
 // 초기화
 // ============================================================
 window.onload = () => {
+  // 마감일 체크
+  if (new Date() > DEADLINE) {
+    g('main-app').style.display = 'block';
+    g('app').innerHTML = VIEWS.closed();
+    return;
+  }
   const prev = checkSubmitted();
   if (prev) {
     S.submitted = true;
@@ -729,6 +736,25 @@ const VIEWS = {
   },
 
   // ── 제출 완료 ──
+  closed: () => `
+    <div class="topbar">
+      <div class="topbar-title">운영요원 모집</div>
+      <span class="badge">KCR 2026</span>
+    </div>
+    <div class="content">
+      <div class="success-wrap">
+        <div class="ok-circle" style="background:#F2F2F7">
+          <span style="font-size:28px">🔒</span>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:#1C1C1E;margin-bottom:6px">모집이 마감되었습니다</div>
+        <div style="font-size:14px;color:#8E8E93;line-height:1.6">
+          KCR 2026 운영요원 모집이 종료되었습니다.<br>
+          관심 가져주셔서 감사합니다.
+        </div>
+      </div>
+    </div>
+  `,
+
   success: () => `
     <div class="topbar">
       <div class="topbar-title">운영요원 모집</div>
