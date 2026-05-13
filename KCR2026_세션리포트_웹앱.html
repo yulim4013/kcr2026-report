@@ -521,7 +521,7 @@ const VIEWS = {
       <div class="card">
         <div class="card-label">세션 종료</div>
         <div class="two-col">
-          <div class="field"><label>종료 시각</label><input type="time" id="i-et" value="${f.e_time}" ${f.s_time?'min="'+f.s_time+'"':''}></div>
+          <div class="field"><label>실제 종료 시각</label><input type="time" id="i-et" value="${f.e_time}" ${f.s_time?'min="'+f.s_time+'"':''}></div>
           <div class="field"><label>참석 인원 <span style="color:#FF3B30">*</span></label><input type="number" id="i-ae" placeholder="명 (필수)" value="${f.att_e}" min="0"></div>
         </div>
         ${timeErr ? '<div class="time-error">종료 시간이 시작 시간보다 빠릅니다</div>' : ''}
